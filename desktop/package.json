@@ -1,0 +1,13 @@
+{
+  "name": "roundtable-companion",
+  "version": "1.0.0",
+  "description": "Hermes Roundtable desktop companion: the agent's full-body figure floating on the desktop (no browser window)",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^38.0.0"
+  }
+}

@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hermes Lab Atlas</title>
+<style id="pagestyle">@page{size:420mm 297mm;margin:0}</style>
+<style>
+:root{
+  --bg:#070b14;--glass:rgba(13,20,34,.78);--glass-hi:rgba(22,32,52,.9);--line:rgba(148,163,184,.13);--line2:rgba(148,163,184,.24);
+  --text:#e6edf8;--muted:#8796b0;--dim:#5d6b84;--accent:#57d8ff;--accent2:#8b7dff;--ok:#4ce5b0;--warn:#ffc35a;--crit:#ff6c8b;--off:#64748b;
+  --card:linear-gradient(180deg,rgba(27,37,60,.97),rgba(16,24,41,.97));--card-line:rgba(148,163,184,.17);--card-text:#e8eef9;--card-muted:#8191ab;
+  --card-row:rgba(148,163,184,.09);--card-val:#cdd8ea;--well:rgba(255,255,255,.028);--chip-bg:rgba(8,13,24,.94);
+  --group-fill:rgba(12,18,32,.5);--shadow:0 18px 40px -18px rgba(0,0,0,.75);
+  --font:"Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  --mono:"JetBrains Mono","Cascadia Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.4 var(--font);-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+kbd{font:600 10px var(--mono);padding:2px 5px;border-radius:5px;border:1px solid var(--line2);color:var(--muted)}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%)}
+
+/* canvas */
+#viewport{position:fixed;inset:0;cursor:grab;touch-action:none;background:
+  radial-gradient(1200px 700px at 15% -10%,rgba(87,216,255,.07),transparent 60%),
+  radial-gradient(1000px 700px at 110% 110%,rgba(139,125,255,.07),transparent 60%),var(--bg)}
+#viewport::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(148,163,184,.13) 1px,transparent 1.2px);
+  background-size:var(--gs,24px) var(--gs,24px);background-position:var(--gx,0) var(--gy,0);pointer-events:none}
+#viewport.panning{cursor:grabbing}
+.stage{position:absolute;left:0;top:0;transform-origin:0 0;display:none}
+.stage.on{display:block}
+
+/* top bar */
+.topbar{position:fixed;z-index:20;top:14px;left:14px;right:14px;height:58px;display:flex;align-items:center;gap:12px;padding:0 10px 0 14px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#57d8ff,#8b7dff);color:#06101e;font-weight:900;font-size:15px;box-shadow:0 0 22px rgba(87,216,255,.35)}
+.brand b{display:block;font-size:15px;letter-spacing:.2px}
+.brand small{display:block;color:var(--muted);font-size:11px;white-space:nowrap}
+.tabs{display:flex;gap:2px;padding:4px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid var(--line);margin-left:auto;margin-right:auto}
+.tabs button{border:0;background:none;padding:7px 14px;border-radius:9px;color:#aab6cc;font-weight:600;font-size:13px;white-space:nowrap}
+.tabs button:hover{color:#fff}
+.tabs button.on{background:linear-gradient(180deg,rgba(87,216,255,.22),rgba(87,216,255,.1));color:#fff;box-shadow:inset 0 0 0 1px rgba(87,216,255,.35)}
+.tbtn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
+.tbtn:hover{border-color:var(--line2);background:rgba(255,255,255,.06)}
+.tbtn svg{width:16px;height:16px}
+.tbtn.primary{background:linear-gradient(180deg,#57d8ff,#33b6e6);color:#04121f;border:0;font-weight:700}
+.tbtn.primary:hover{filter:brightness(1.07)}
+.tbtn .muted{color:var(--muted)}
+.rel{position:relative}
+
+/* bottom toolbar */
+.dock{position:fixed;z-index:20;bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px;max-width:calc(100vw - 28px);overflow-x:auto}
+.dock .sep{width:1px;height:24px;background:var(--line2);margin:0 4px;flex:none}
+.seg{display:flex;padding:3px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid var(--line);flex:none}
+.seg button{border:0;background:none;height:28px;padding:0 11px;border-radius:7px;color:#aab6cc;font-weight:600;font-size:12px;white-space:nowrap}
+.seg button.on{background:rgba(139,125,255,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(139,125,255,.45)}
+.dock .ico{width:34px;height:34px;padding:0;justify-content:center;flex:none}
+.dock .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;padding:0 2px 0 6px;flex:none}
+.tbtn.on{border-color:rgba(76,229,176,.45);color:var(--ok)}
+
+/* panels */
+.panel{position:fixed;z-index:15;top:86px;bottom:86px;width:300px;overflow:auto;padding:14px;transition:transform .25s ease,opacity .25s}
+#layers{left:14px}
+#layers.closed{transform:translateX(calc(-100% - 20px));opacity:0;pointer-events:none}
+#drawer{right:14px;width:340px}
+#drawer.closed{transform:translateX(calc(100% + 20px));opacity:0;pointer-events:none}
+.panel h3{margin:14px 2px 8px;font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim)}
+.panel h3:first-child{margin-top:0}
+.pclose{position:absolute;right:10px;top:10px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--muted)}
+.warnitem{display:block;width:100%;text-align:left;border:1px solid rgba(255,195,90,.25);background:rgba(255,195,90,.06);color:#ffe2a8;border-radius:11px;padding:8px 10px;margin-bottom:6px}
+.warnitem.crit{border-color:rgba(255,108,139,.32);background:rgba(255,108,139,.07);color:#ffc2cf}
+.warnitem:hover{filter:brightness(1.15)}
+.warnitem small{display:block;opacity:.72;font-size:11px;margin-top:2px}
+.filters label{display:flex;align-items:center;gap:9px;padding:4px 2px;cursor:pointer;color:#c8d2e3}
+.filters input{accent-color:#57d8ff}
+.filters .sw{width:10px;height:10px;border-radius:3px;box-shadow:0 0 8px currentColor}
+.filters .n{margin-left:auto;color:var(--dim);font-size:11px}
+.legend div{display:flex;align-items:center;gap:10px;margin:6px 0;color:#c8d2e3}
+.legend svg{width:44px;height:10px;flex:none}
+.legend .dot{margin:0 17px}
+.about{font-size:12px;color:var(--muted)}
+.about code{font:11px var(--mono);color:#b9c6dc}
+.detail h4{margin:0 30px 4px 0;font-size:17px}
+.detail .sub{color:var(--muted);font-size:12px}
+.kvs{margin:10px 0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:12px}
+.kvs span{color:var(--muted)}
+.kvs b{font-weight:500;word-break:break-word;font-family:var(--mono);font-size:11.5px;color:#d6e0f0}
+.detail p{margin:8px 0;color:#ffe2a8}
+.conn{display:block;width:100%;text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:10px;padding:7px 10px;margin-bottom:6px}
+.conn:hover{border-color:var(--line2)}
+.conn small{display:block;color:var(--muted);font-size:11px}
+.conn i{font-style:normal;display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+
+/* command palette */
+#palette{position:fixed;z-index:50;inset:0;background:rgba(3,6,12,.55);display:flex;justify-content:center;padding-top:12vh}
+#palette.closed{display:none}
+#palette .box{width:min(620px,calc(100vw - 28px));max-height:64vh;display:flex;flex-direction:column;overflow:hidden}
+#palette input{border:0;border-bottom:1px solid var(--line);background:none;padding:16px 18px;font-size:16px;outline:none}
+#presults{overflow:auto;padding:6px}
+.result{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;border-radius:10px;padding:8px 10px}
+.result.on,.result:hover{background:rgba(87,216,255,.1)}
+.result small{display:block;color:var(--muted);font-size:11px}
+.result .ic{width:26px;height:26px;border-radius:8px}
+.result .ic svg{width:14px;height:14px}
+
+/* export menu */
+.menu{position:absolute;top:46px;right:0;z-index:30;padding:12px;width:280px}
+.menu label{display:block;margin:8px 0 4px;color:var(--muted);font-size:11px}
+.menu select{width:100%;height:34px;border-radius:9px;border:1px solid var(--line2);background:#0c1424;padding:0 8px}
+.menu .tbtn{width:100%;justify-content:center;margin-top:12px}
+.menu p{margin:8px 0 0;font-size:11px;color:var(--muted)}
+.hidden{display:none!important}
+
+/* groups */
+.group{position:absolute;border-radius:20px;border:1px solid color-mix(in srgb,var(--c) 26%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 7%,transparent),transparent 140px),var(--group-fill)}
+.group::before{content:"";position:absolute;left:18px;right:18px;top:-1px;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c) 70%,transparent),transparent)}
+.ghead{position:absolute;left:14px;top:12px;right:14px;height:24px;display:flex;align-items:center;gap:8px;cursor:move;white-space:nowrap}
+.ghead .gdot{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c)}
+.ghead .gl{font-weight:700;font-size:13px;color:#eef3fb;letter-spacing:.2px}
+.ghead .gc{margin-left:auto;font:600 10.5px var(--mono);color:color-mix(in srgb,var(--c) 80%,#fff);padding:2px 7px;border-radius:20px;background:color-mix(in srgb,var(--c) 14%,transparent)}
+.gdesc{position:absolute;left:30px;top:36px;font-size:11.5px;color:var(--muted);white-space:nowrap}
+
+/* tiles */
+.tile{position:absolute;background:var(--card);color:var(--card-text);border:1px solid var(--card-line);border-radius:14px;padding:10px 12px 9px;
+  box-shadow:0 12px 28px -14px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.045);cursor:pointer;user-select:none;transition:opacity .2s,border-color .15s,box-shadow .15s}
+.tile:hover,.tile.sel{border-color:color-mix(in srgb,var(--c) 65%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 35%,transparent),0 16px 36px -12px color-mix(in srgb,var(--c) 40%,transparent)}
+.tile.sel{box-shadow:0 0 0 2px var(--c),0 16px 40px -10px color-mix(in srgb,var(--c) 55%,transparent)}
+.tile.st-off{opacity:.62}
+.th{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.ic{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:color-mix(in srgb,var(--c) 75%,#fff);
+  background:color-mix(in srgb,var(--c) 16%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 32%,transparent)}
+.ic svg{width:17px;height:17px}
+.tt{font-weight:650;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ty{font-size:10.5px;color:var(--card-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tmeta{min-width:0;flex:1}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:11px;line-height:18px;border-top:1px solid var(--card-row)}
+.kv span{color:var(--card-muted);white-space:nowrap}
+.kv b{font:500 10.5px/18px var(--mono);color:var(--card-val);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tn{margin-top:5px;font-size:10.5px;line-height:14px;color:var(--warn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-down .tn{color:var(--crit)}
+.pill{flex:none;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;font:600 9.5px var(--mono);text-transform:uppercase;letter-spacing:.5px;padding:2px 7px 2px 6px;border-radius:20px}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.pill.ok{color:var(--ok);background:rgba(76,229,176,.1)}.pill.warn{color:var(--warn);background:rgba(255,195,90,.1)}
+.pill.down{color:var(--crit);background:rgba(255,108,139,.12)}.pill.off{color:#94a3b8;background:rgba(148,163,184,.1)}
+.st-down .pill i{animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.badge{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:linear-gradient(135deg,#57d8ff,#8b7dff);color:#06101e;
+  font:800 11px/22px var(--font);text-align:center;box-shadow:0 0 14px rgba(87,216,255,.45)}
+.items{margin-top:6px;border-radius:9px;background:var(--well);box-shadow:inset 0 0 0 1px var(--card-row);padding:3px 8px 4px}
+.ih{font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--card-muted);line-height:17px}
+.it{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;line-height:17px;border-top:1px solid var(--card-row)}
+.it i{font-style:normal;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it b{font:500 10px/17px var(--mono);color:var(--card-muted);white-space:nowrap}
+.tile.note{background:linear-gradient(180deg,rgba(255,195,90,.11),rgba(255,195,90,.045)),#0f1626;border-color:rgba(255,195,90,.3);cursor:default}
+.nh{font-weight:800;font-size:11px;color:var(--warn);line-height:22px;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid rgba(255,195,90,.2);margin-bottom:5px}
+.nt{font-size:11px;line-height:15px;color:#e9dfc6}
+.stage.focus .tile:not(.hl){opacity:.22}
+.stage.focus .group:not(.hl){opacity:.55}
+
+/* edges */
+svg.edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.edge .glow{fill:none;stroke-width:8;opacity:.1;stroke-linecap:round}
+.edge .ln{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.edge.trunk .ln{stroke-width:2.4}
+.edge.trunk .glow{stroke-width:11;opacity:.12}
+.edge.hl .ln{stroke-width:2.6}
+.edge.hl .glow{opacity:.28}
+.motion .edge.dashed .ln{animation:dash 1.1s linear infinite}
+.motion .edge.dashed.rev .ln{animation-direction:reverse}
+@keyframes dash{to{stroke-dashoffset:-22}}
+.stage.focus .edge:not(.hl){opacity:.07}
+.edge .chip rect{fill:var(--chip-bg);stroke-width:1}
+.edge .chip text{font:700 10px var(--font);letter-spacing:.2px}
+.hit{fill:none;stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:pointer}
+.packet{pointer-events:none}
+
+/* minimap */
+#minimap{position:fixed;z-index:15;right:14px;bottom:16px;width:190px;height:122px;overflow:hidden;cursor:pointer;padding:0}
+#minimap div{position:absolute;border-radius:3px}
+#minimap .vp{border:1.5px solid rgba(255,255,255,.85);background:rgba(255,255,255,.05);border-radius:4px}
+#drawer:not(.closed)~#minimap{display:none}
+
+@media (max-width:1100px){.brand small{display:none}.tbtn .lbl{display:none}}
+@media (max-width:860px){
+  .topbar{flex-wrap:wrap;height:auto;padding:8px;gap:8px}
+  .tabs{order:3;width:100%;overflow-x:auto;margin:0}
+  .panel{top:auto;bottom:76px;left:10px!important;right:10px!important;width:auto!important;max-height:55vh}
+  #minimap{display:none}
+  .dock{bottom:10px}
+}
+@media (prefers-reduced-motion:reduce){.motion .edge.dashed .ln{animation:none}}
+
+/* print */
+#print{display:none}
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff}
+  body>*:not(#print){display:none!important}
+  #print{display:block;position:relative}
+  .ppage{position:relative;overflow:hidden;contain:strict;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ppage+.ppage{break-before:page}
+  .ppage .stage{display:block}
+}
+.ppage{background:var(--bg)}
+.ppage .phead{position:absolute;height:44px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line2);color:var(--text)}
+.ppage .phead b{font-size:19px}.ppage .phead span{color:var(--muted);font-size:12px}
+.ppage .tile{box-shadow:none}
+.ppage.light{--bg:#ffffff;--text:#111827;--muted:#5b6478;--dim:#7b8496;--line:#dfe4ee;--line2:#d3d9e5;
+  --card:#ffffff;--card-line:#d5dce8;--card-text:#121a2b;--card-muted:#5f6b83;--card-row:#e7ebf2;--card-val:#1f2a40;--well:#f5f7fb;--chip-bg:#ffffff;--group-fill:#fafbfd}
+.ppage.light .ghead .gl{color:#111827}
+.ppage.light .tile.note{background:#fff8e6;border-color:#f0d58c}
+.ppage.light .nt{color:#3d3000}.ppage.light .nh{color:#8a5a00}
+.ppage.light .edge .glow{opacity:0}
+.ppage.light .edge .chip text{fill:#1f2a40}
+/* Roundtable themes: when served by the portal (/atlas) it follows the portal theme via /theme-kit.css; glass/offline = this original look */
+html.th{--bg:var(--k-bg);--glass:color-mix(in srgb,var(--k-solid) 84%,transparent);--glass-hi:var(--k-solid);--line:var(--k-bd);--line2:var(--k-bdh);
+  --text:var(--k-txt);--muted:var(--k-mut);--dim:color-mix(in srgb,var(--k-mut) 70%,var(--k-bg));--accent:var(--k-acc);--accent2:var(--k-acc2);--ok:var(--k-ok);--warn:var(--k-warn);--crit:var(--k-bad);
+  --card:linear-gradient(180deg,color-mix(in srgb,var(--k-txt) 5%,var(--k-solid)),var(--k-solid));--card-line:var(--k-bd);--card-text:var(--k-txt);--card-muted:var(--k-mut);
+  --card-row:color-mix(in srgb,var(--k-txt) 7%,transparent);--card-val:var(--k-txt2);--well:color-mix(in srgb,var(--k-txt) 3%,transparent);--chip-bg:var(--k-solid);
+  --group-fill:color-mix(in srgb,var(--k-solid) 55%,transparent);--font:var(--k-font)}
+html.th #viewport{background:radial-gradient(1200px 700px at 15% -10%,color-mix(in srgb,var(--k-acc) 9%,transparent),transparent 60%),radial-gradient(1000px 700px at 110% 110%,color-mix(in srgb,var(--k-acc2) 8%,transparent),transparent 60%),var(--k-bg)}
+html.th .logo{background:linear-gradient(135deg,var(--k-acc),var(--k-acc2))}
+html.th .tabs button.on{background:color-mix(in srgb,var(--k-acc) 20%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--k-acc) 45%,transparent)}
+html.th .tbtn.primary{background:var(--k-acc);color:#fff}
+html.th .result.on,html.th .result:hover{background:color-mix(in srgb,var(--k-acc) 12%,transparent)}
+html.th .filters input{accent-color:var(--k-acc)}
+html.th .glass{border-radius:var(--k-r)}
+.topbar .rt-pick{color:var(--muted);margin-left:4px}
+</style>
+<link rel="stylesheet" href="/theme-kit.css"><script src="/theme-kit.js"></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="defs"></defs></svg>
+<div id="viewport"></div>
+
+<div class="topbar glass">
+  <div class="brand"><div class="logo">H</div><div><b>Hermes Lab Atlas</b><small id="stats">MorpheusCluster</small></div></div>
+  <div class="tabs" id="tabs"></div>
+  <button class="tbtn" id="searchBtn" title="Search everything (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="lbl muted">Search</span><kbd>Ctrl K</kbd></button>
+  <div class="rel">
+    <span id="rtPickSlot"></span><button class="tbtn primary" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl">Export PDF</span></button>
+    <div class="menu glass hidden" id="exportMenu">
+      <label>Diagrams</label>
+      <select id="expWhat"><option value="one">This tab only</option><option value="all">All tabs (one per page)</option></select>
+      <label>Paper</label>
+      <select id="expPaper"><option value="A1">A1 landscape (poster, best for Detailed)</option><option value="A2">A2 landscape</option><option value="A3" selected>A3 landscape</option><option value="A4">A4 landscape</option><option value="Letter">Letter landscape</option></select>
+      <label>Style</label>
+      <select id="expStyle"><option value="dark">Dark (as on screen)</option><option value="light">Light (saves ink)</option></select>
+      <label>Lines</label>
+      <select id="expLines"><option value="bundled">Bundled (clean)</option><option value="all">Every connection</option></select>
+      <button class="tbtn primary" id="doExport">Export…</button>
+      <p>Opens the print dialog. Choose <b>Save as PDF</b> as the printer.</p>
+    </div>
+  </div>
+</div>
+
+<aside class="panel glass" id="layers">
+  <h3>Needs attention</h3><div id="warnings"></div>
+  <h3>Show / hide</h3><div class="filters" id="filters"></div>
+  <h3>Lines</h3><div class="legend" id="legend"></div>
+  <h3>About</h3>
+  <div class="about">Snapshot <b id="snap"></b> from Proxmox, Omada, Docker on each host, node hardware and <code>agents.json</code>. Links marked “docs” come from older notes. Miriel redraws it from the live lab after every changelog entry and every 30 minutes; to move or relabel things, edit <code>agents/olympus/atlas_layout.json</code>.</div>
+</aside>
+
+<aside class="panel glass closed" id="drawer"><button class="pclose" id="drawerClose" title="Close">✕</button><div class="detail" id="detail"></div></aside>
+
+<div class="dock glass">
+  <button class="tbtn ico" id="layersBtn" title="Layers panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
+  <span class="sep"></span>
+  <span class="lbl">Detail</span>
+  <div class="seg" id="mode"><button data-v="overview">Overview</button><button data-v="detail">Detailed</button></div>
+  <span class="lbl">Lines</span>
+  <div class="seg" id="lines"><button data-v="bundled" title="Links between two groups merge into one trunk">Bundled</button><button data-v="all" title="Every connection">All</button><button data-v="focus" title="Only the lines of what you hover or select">Focus</button></div>
+  <button class="tbtn" id="motionBtn" title="Animate the lines"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span class="lbl">Motion</span></button>
+  <span class="sep"></span>
+  <button class="tbtn ico" id="zout" title="Zoom out">−</button>
+  <button class="tbtn ico" id="fitBtn" title="Fit to screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <button class="tbtn ico" id="zin" title="Zoom in">+</button>
+  <button class="tbtn ico" id="resetBtn" title="Put moved tiles back (this tab)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+</div>
+
+<div class="glass" id="minimap"></div>
+<div id="palette" class="closed"><div class="box glass"><input id="pq" placeholder="Search devices, services, agents, IPs, ports…" autocomplete="off"><div id="presults"></div></div></div>
+<div id="print"></div>
+
+<script>
+/* ---------------------------------------------------------------- icons, types, line kinds */
+const ICONS = {
+  server:'<rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+  vm:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 7h10M7 11h6M9 21h6M12 17v4"/>',
+  lxc:'<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/>',
+  container:'<rect x="3" y="10" width="18" height="10" rx="2"/><path d="M7 10V6h4v4M13 10V6h4v4"/>',
+  router:'<rect x="2" y="13" width="20" height="7" rx="2"/><path d="M6 16.5h.01M10 16.5h.01M12 13V8"/><path d="M8 7a5 5 0 0 1 8 0M5 4.5a9 9 0 0 1 14 0"/>',
+  switch:'<rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/>',
+  ap:'<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/>',
+  nas:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/>',
+  cloud:'<path d="M17.5 19H8a5 5 0 1 1 .9-9.9A6 6 0 0 1 20 11.5a3.8 3.8 0 0 1-2.5 7.5z"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>',
+  agent:'<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6"/>',
+  person:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  db:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+  dns:'<path d="M12 3v18M5 5h11l3 3-3 3H5zM19 13H8l-3 3 3 3h11z"/>',
+  code:'<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="8" r="2.5"/><path d="M6 8.5v7M18 10.5c0 4-6 3-11 6"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pc:'<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  vlan:'<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5M3 17.5l9 5 9-5"/>',
+  app:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  media:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 9l5 3-5 3z"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  disk:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v4"/>',
+  note:'<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h6"/>',
+};
+const TYPES = {
+  internet:{label:'Internet',icon:'globe',c:'#38bdf8'}, cloud:{label:'Cloud service',icon:'cloud',c:'#60a5fa'},
+  router:{label:'Router',icon:'router',c:'#22d3ee'}, switch:{label:'Switch',icon:'switch',c:'#818cf8'},
+  ap:{label:'Access point',icon:'ap',c:'#34d399'}, node:{label:'Proxmox node',icon:'server',c:'#60a5fa'},
+  vm:{label:'VM',icon:'vm',c:'#7dd3fc'}, lxc:{label:'LXC container',icon:'lxc',c:'#c084fc'},
+  container:{label:'Docker container',icon:'container',c:'#38bdf8'}, service:{label:'Native service',icon:'bolt',c:'#fb923c'},
+  storage:{label:'Storage',icon:'nas',c:'#fbbf24'}, backup:{label:'Backup',icon:'db',c:'#facc15'},
+  security:{label:'Security / identity',icon:'shield',c:'#a78bfa'}, dns:{label:'DNS',icon:'dns',c:'#f472b6'},
+  monitor:{label:'Monitoring',icon:'chart',c:'#f472b6'}, devops:{label:'Automation',icon:'code',c:'#34d399'},
+  agent:{label:'AI agent',icon:'agent',c:'#fb923c'}, person:{label:'Person',icon:'person',c:'#cbd5e1'},
+  device:{label:'Device',icon:'pc',c:'#94a3b8'}, vlan:{label:'VLAN',icon:'vlan',c:'#94a3b8'},
+  data:{label:'Database',icon:'db',c:'#c084fc'}, timer:{label:'Schedule',icon:'clock',c:'#2dd4bf'},
+  channel:{label:'Channel',icon:'chat',c:'#818cf8'}, hw:{label:'Hardware',icon:'server',c:'#e2e8f0'},
+  disk:{label:'Drive',icon:'disk',c:'#fbbf24'}, note:{label:'Note',icon:'note',c:'#ffc35a'},
+};
+const EDGE = {
+  link:{label:'Physical link',c:'#57d8ff',dash:''}, route:{label:'Traffic / route',c:'#4ce5b0',dash:''},
+  dep:{label:'Uses / reads',c:'#8ea3c7',dash:'5 6'}, mgmt:{label:'Manages / deploys',c:'#b08cff',dash:'8 5'},
+  data:{label:'Storage / backup',c:'#ffc35a',dash:''}, report:{label:'Reports to',c:'#ff9f5a',dash:'2 5'},
+  warn:{label:'Broken / planned',c:'#ff6c8b',dash:'4 5'}, mix:{label:'Bundle of mixed links',c:'#9fb6ff',dash:''},
+  cmd:{label:'Command / routing',c:'#ffd84d',dash:''}, post:{label:'Posts to Discord',c:'#7c8cff',dash:''},
+  approval:{label:'Asks for your ✅',c:'#c08cf0',dash:'6 4'}, trigger:{label:'Triggers another agent',c:'#ff7a6b',dash:'3 4'},
+  sys:{label:'Reads / writes a system',c:'#8ea3c7',dash:'5 6'},
+};
+
+/* ---------------------------------------------------------------- state */
+const GX=28, GY=34, PAD=20, HEAD=50, GGX=96, GGY=104;
+let DETAIL=false, TW=240, MAXF=4, LINES='bundled', MOTION=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+const STORE='hermes-lab-atlas-v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let store={}; try{store=JSON.parse(localStorage.getItem(STORE)||'{}')}catch(e){store={}}
+const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(store))}catch(e){}};
+const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(STORE+'-'+k);localStorage.setItem(STORE+'-'+k,v)}catch(e){return null}};
+const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]||ICONS.app}</svg>`;
+const vis=x=>DETAIL?!x.simple:!x.detail;
+function fieldsOf(n){const f=Object.entries(n.f||{});return DETAIL?f.concat(Object.entries(n.more||{})):f.slice(0,MAXF)}
+function noteLines(n){const per=Math.floor((TW-24)/6.1);return (n.text||'').split('\n').reduce((a,p)=>a+Math.max(1,Math.ceil(p.length/per)),0)}
+function tileH(n){
+  if(n.t==='note')return 10+28+noteLines(n)*15+12;
+  const items=DETAIL&&n.items?24+n.items.length*17:0;
+  return 10+32+6+fieldsOf(n).length*18+items+(n.note?20:0)+9;
+}
+
+/* ---------------------------------------------------------------- layout */
+function layout(d){
+  d.base={}; d.gbase={}; const sizes={};
+  for(const g of d.groups){
+    const nodes=d.nodes.filter(n=>n.g===g.id);
+    const cols=Math.max(1,Math.min((DETAIL&&g.dcols)||g.cols||2,nodes.length||1));
+    const top=HEAD+(g.desc?14:0); let cy=top; const pos=[];
+    for(let r=0;r<nodes.length;r+=cols){
+      const chunk=nodes.slice(r,r+cols),h=Math.max(...chunk.map(tileH));
+      chunk.forEach((n,i)=>pos.push([n,PAD+i*(TW+GX),cy,tileH(n)])); cy+=h+GY;
+    }
+    const w=Math.max(PAD*2+cols*TW+(cols-1)*GX,g.desc?g.desc.length*6.3+50:0,g.label.length*8+90);
+    sizes[g.id]={w,h:Math.max(cy-GY+PAD,top+60),pos};
+  }
+  const lay=((DETAIL&&d.dlayout)||d.layout).map(r=>r.filter(id=>sizes[id])).filter(r=>r.length);
+  const rows=lay.map(r=>({ids:r,w:r.reduce((a,id)=>a+sizes[id].w,0)+(r.length-1)*GGX,h:Math.max(...r.map(id=>sizes[id].h))}));
+  const maxW=Math.max(...rows.map(r=>r.w)); let y=0;
+  for(const r of rows){
+    let x=(maxW-r.w)/2;
+    for(const id of r.ids){const s=sizes[id];d.gbase[id]={x,y,w:s.w,h:s.h};for(const [n,px,py,h] of s.pos)d.base[n.id]={x:x+px,y:y+py,w:TW,h};x+=s.w+GGX}
+    y+=r.h+GGY;
+  }
+}
+const off=(d,kind,id)=>((store[d.sk]||{})[kind]||{})[id]||[0,0];
+function nodeRect(d,id){const n=d.byId[id],b=d.base[id];if(!b)return null;const a=off(d,'n',id),g=off(d,'g',n.g);return{x:b.x+a[0]+g[0],y:b.y+a[1]+g[1],w:b.w,h:b.h}}
+function groupRect(d,gid){
+  const b=d.gbase[gid];if(!b)return null;const o=off(d,'g',gid);let r={x:b.x+o[0],y:b.y+o[1],w:b.w,h:b.h};
+  for(const n of d.nodes)if(n.g===gid){const t=nodeRect(d,n.id),x1=Math.min(r.x,t.x-PAD),y1=Math.min(r.y,t.y-HEAD),x2=Math.max(r.x+r.w,t.x+t.w+PAD),y2=Math.max(r.y+r.h,t.y+t.h+PAD);r={x:x1,y:y1,w:x2-x1,h:y2-y1}}
+  return r;
+}
+const rectOf=(d,id)=>d.byId[id]?nodeRect(d,id):groupRect(d,id);
+const groupOf=(d,id)=>d.byId[id]?d.byId[id].g:(d.gbase[id]?id:null);
+function bbox(d){let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;for(const g of d.groups){const r=groupRect(d,g.id);x1=Math.min(x1,r.x);y1=Math.min(y1,r.y);x2=Math.max(x2,r.x+r.w);y2=Math.max(y2,r.y+r.h)}return{x:x1-40,y:y1-40,w:x2-x1+80,h:y2-y1+80}}
+
+/* ---------------------------------------------------------------- tiles & groups */
+const STATE={ok:'live',warn:'check',down:'down',off:'idle'};
+function tileHTML(n){
+  if(n.t==='note')return `<div class="nh">${esc(n.n)}</div><div class="nt">${n.text.split('\n').map(esc).join('<br>')}</div>`;
+  const t=TYPES[n.t]||TYPES.service,f=fieldsOf(n);
+  const items=DETAIL&&n.items?`<div class="items"><div class="ih">${esc(n.itemsLabel||'Contains')} · ${n.items.length}</div>${n.items.map(([a,b])=>`<div class="it"><i>${esc(a)}</i><b>${esc(b||'')}</b></div>`).join('')}</div>`:'';
+  return `<div class="th"><div class="ic">${icon(n.icon||t.icon)}</div><div class="tmeta"><div class="tt">${esc(n.n)}</div><div class="ty">${esc(n.sub||t.label)}</div></div>${n.s?`<span class="pill ${n.s}"><i></i>${STATE[n.s]}</span>`:''}</div>`+
+    f.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b title="${esc(v)}">${esc(v)}</b></div>`).join('')+items+
+    (n.note?`<div class="tn" title="${esc(n.note)}">${esc(n.note)}</div>`:'')+(n.badge!=null?`<div class="badge">${esc(n.badge)}</div>`:'');
+}
+function renderStage(d){
+  const el=document.createElement('div'); el.className='stage'; el.dataset.id=d.id;
+  for(const g of d.groups){const count=d.nodes.filter(n=>n.g===g.id).length;
+    el.insertAdjacentHTML('beforeend',`<div class="group" data-g="${g.id}" style="--c:${g.c}"><div class="ghead" data-g="${g.id}"><i class="gdot"></i><span class="gl">${esc(g.label)}</span><span class="gc">${count}</span></div>${g.desc?`<div class="gdesc">${esc(g.desc)}</div>`:''}</div>`)}
+  el.insertAdjacentHTML('beforeend','<svg class="edges"></svg>');
+  for(const n of d.nodes){const t=TYPES[n.t]||TYPES.service;el.insertAdjacentHTML('beforeend',`<div class="tile${n.s?' st-'+n.s:''}${n.t==='note'?' note':''}" style="--c:${t.c}" data-id="${n.id}">${tileHTML(n)}</div>`)}
+  return el;
+}
+
+/* ---------------------------------------------------------------- line planning: bundle, route, lanes */
+function hiddenNode(d,id){return !!(d.byId[id]&&d.hide&&d.hide.has(d.byId[id].t))}
+function liveEdges(d){return d.edges.map(([a,b,label='',kind='dep'],i)=>({a,b,label,kind,i})).filter(e=>rectOf(d,e.a)&&rectOf(d,e.b)&&!hiddenNode(d,e.a)&&!hiddenNode(d,e.b))}
+function focusSet(d){const f=d.focus;if(!f)return null;return f}
+function planLines(d,opts={}){
+  const mode=opts.lines||LINES, F=opts.print?null:focusSet(d), E=liveEdges(d), out=[];
+  const touches=e=>!!F&&(F.has(e.a)||F.has(e.b)||F.has(groupOf(d,e.a))&&!d.byId[e.a]||F.has(groupOf(d,e.b))&&!d.byId[e.b]);
+  if(mode==='all'){for(const e of E)out.push({...e,a:e.a,b:e.b,hl:touches(e),edges:[e]});return out}
+  const trunks=new Map();
+  for(const e of E){
+    if(F&&touches(e)){out.push({...e,hl:true,edges:[e]});continue}   // focused: show the real link
+    if(mode==='focus')continue;
+    const ga=groupOf(d,e.a),gb=groupOf(d,e.b);
+    if(ga===gb){out.push({...e,edges:[e]});continue}
+    const k=ga<gb?ga+'|'+gb:gb+'|'+ga;
+    if(!trunks.has(k))trunks.set(k,{a:ga<gb?ga:gb,b:ga<gb?gb:ga,edges:[]});
+    trunks.get(k).edges.push(e);
+  }
+  for(const t of trunks.values()){
+    const fwd=t.edges.filter(e=>groupOf(d,e.a)===t.a).length, both=fwd>0&&fwd<t.edges.length;
+    const kinds=[...new Set(t.edges.map(e=>e.kind))];
+    if(t.edges.length===1){const e=t.edges[0];out.push({...e,a:groupOf(d,e.a),b:groupOf(d,e.b),trunk:true,edges:t.edges});continue}
+    out.push({a:fwd?t.a:t.b,b:fwd?t.b:t.a,both,trunk:true,kind:kinds.length===1?kinds[0]:'mix',label:`${t.edges.length} links`,edges:t.edges});
+  }
+  return out;
+}
+function sidesFor(ra,rb){
+  const ca=[ra.x+ra.w/2,ra.y+ra.h/2],cb=[rb.x+rb.w/2,rb.y+rb.h/2],dx=cb[0]-ca[0],dy=cb[1]-ca[1];
+  const hGap=dx>0?rb.x-(ra.x+ra.w):ra.x-(rb.x+rb.w), vGap=dy>0?rb.y-(ra.y+ra.h):ra.y-(rb.y+rb.h);
+  if(hGap>=vGap&&hGap>-1)return dx>0?['r','l','h']:['l','r','h'];
+  if(vGap>-1)return dy>0?['b','t','v']:['t','b','v'];
+  return dx>0?['r','l','h']:['l','r','h'];
+}
+function anchor(r,side,t){return side==='r'?[r.x+r.w,r.y+r.h*t]:side==='l'?[r.x,r.y+r.h*t]:side==='b'?[r.x+r.w*t,r.y+r.h]:[r.x+r.w*t,r.y]}
+function rounded(pts,rad=14){
+  let s=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=1;i<pts.length-1;i++){
+    const [x0,y0]=pts[i-1],[x1,y1]=pts[i],[x2,y2]=pts[i+1],d1=Math.hypot(x1-x0,y1-y0),d2=Math.hypot(x2-x1,y2-y1),r=Math.min(rad,d1/2,d2/2);
+    if(r<1){s+=` L${x1.toFixed(1)},${y1.toFixed(1)}`;continue}
+    s+=` L${(x1+(x0-x1)/d1*r).toFixed(1)},${(y1+(y0-y1)/d1*r).toFixed(1)} Q${x1.toFixed(1)},${y1.toFixed(1)} ${(x1+(x2-x1)/d2*r).toFixed(1)},${(y1+(y2-y1)/d2*r).toFixed(1)}`;
+  }
+  const l=pts[pts.length-1];return s+` L${l[0].toFixed(1)},${l[1].toFixed(1)}`;
+}
+function route(d,lines){
+  // 1) sides, 2) spread ports along each side, 3) mid-channel in the gap next to the source, 4) lanes for parallel runs
+  for(const L of lines){L.ra=rectOf(d,L.a);L.rb=rectOf(d,L.b);[L.sa,L.sb,L.o]=sidesFor(L.ra,L.rb)}
+  const ports=new Map(),add=(k,L,end)=>{if(!ports.has(k))ports.set(k,[]);ports.get(k).push([L,end])};
+  for(const L of lines){add(L.a+':'+L.sa,L,'a');add(L.b+':'+L.sb,L,'b')}
+  for(const list of ports.values()){
+    const horiz=s=>s==='t'||s==='b';
+    list.sort((p,q)=>{const o=p[1]==='a'?p[0].rb:p[0].ra,o2=q[1]==='a'?q[0].rb:q[0].ra,side=p[1]==='a'?p[0].sa:p[0].sb;
+      return horiz(side)?(o.x+o.w/2)-(o2.x+o2.w/2):(o.y+o.h/2)-(o2.y+o2.h/2)});
+    const n=list.length;list.forEach(([L,end],i)=>{const t=n===1?.5:.2+.6*i/(n-1);L[end==='a'?'ta':'tb']=t});
+  }
+  for(const L of lines){
+    const p0=anchor(L.ra,L.sa,L.ta),p3=anchor(L.rb,L.sb,L.tb);L.p0=p0;L.p3=p3;
+    const ga=groupRect(d,groupOf(d,L.a)),gb=groupRect(d,groupOf(d,L.b)),same=groupOf(d,L.a)===groupOf(d,L.b);
+    if(L.o==='h'){const right=p3[0]>p0[0];let m=(p0[0]+p3[0])/2;
+      if(!same&&ga&&gb){const gapA=right?ga.x+ga.w:ga.x,gapB=right?gb.x:gb.x+gb.w;if((right&&gapB>gapA)||(!right&&gapB<gapA))m=(gapA+gapB)/2}
+      L.mid=m;L.key='h'+Math.round(m/24)}
+    else{const down=p3[1]>p0[1];let m=(p0[1]+p3[1])/2;
+      if(!same&&ga&&gb){const gapA=down?ga.y+ga.h:ga.y,gapB=down?gb.y:gb.y+gb.h;if((down&&gapB>gapA)||(!down&&gapB<gapA))m=gapA+(down?1:-1)*Math.min(GGY/2,Math.abs(gapB-gapA)/2)}
+      L.mid=m;L.key='v'+Math.round(m/24)}
+  }
+  const lanes=new Map();for(const L of lines){if(!lanes.has(L.key))lanes.set(L.key,[]);lanes.get(L.key).push(L)}
+  for(const list of lanes.values()){
+    list.sort((p,q)=>p.o==='h'?p.p0[1]-q.p0[1]:p.p0[0]-q.p0[0]);
+    const n=list.length,step=Math.min(10,40/Math.max(1,n));list.forEach((L,i)=>L.mid+=(i-(n-1)/2)*step);
+  }
+  // 5) detour around groups that a straight run would cross, through the nearest free gutter
+  const gr=d.groups.map(g=>({id:g.id,r:groupRect(d,g.id)}));
+  const hitsV=(x,y1,y2,skip)=>gr.some(g=>!skip.has(g.id)&&x>g.r.x-6&&x<g.r.x+g.r.w+6&&Math.max(y1,y2)>g.r.y&&Math.min(y1,y2)<g.r.y+g.r.h);
+  const hitsH=(y,x1,x2,skip)=>gr.some(g=>!skip.has(g.id)&&y>g.r.y-6&&y<g.r.y+g.r.h+6&&Math.max(x1,x2)>g.r.x&&Math.min(x1,x2)<g.r.x+g.r.w);
+  const detours=new Map();
+  for(const L of lines){
+    L.pts=null;const ga=groupOf(d,L.a),gb=groupOf(d,L.b);if(ga===gb)continue;
+    const skip=new Set([ga,gb]),{p0,p3,mid}=L,A=groupRect(d,ga),B=groupRect(d,gb);
+    if(L.o==='v'&&hitsV(p3[0],mid,p3[1],skip)){
+      const down=p3[1]>p0[1],y2=down?B.y-Math.min(GGY/2,(B.y-mid)/2):B.y+B.h+Math.min(GGY/2,(mid-B.y-B.h)/2);
+      const cands=[...gr.flatMap(g=>[g.r.x-GGX/2,g.r.x+g.r.w+GGX/2])].filter(x=>!hitsV(x,mid,y2,skip));
+      if(cands.length){const gx=cands.reduce((a,x)=>Math.abs(x-p3[0])+Math.abs(x-p0[0])<Math.abs(a-p3[0])+Math.abs(a-p0[0])?x:a);
+        L.det={gx,y2};const k='x'+Math.round(gx/24);if(!detours.has(k))detours.set(k,[]);detours.get(k).push(L)}
+    }else if(L.o==='h'&&hitsH(p3[1],mid,p3[0],skip)){
+      const right=p3[0]>p0[0],x2=right?B.x-Math.min(GGX/2,(B.x-mid)/2):B.x+B.w+Math.min(GGX/2,(mid-B.x-B.w)/2);
+      const cands=[...gr.flatMap(g=>[g.r.y-GGY/2,g.r.y+g.r.h+GGY/2])].filter(y=>!hitsH(y,mid,x2,skip));
+      if(cands.length){const gy=cands.reduce((a,y)=>Math.abs(y-p3[1])+Math.abs(y-p0[1])<Math.abs(a-p3[1])+Math.abs(a-p0[1])?y:a);
+        L.det={gy,x2};const k='y'+Math.round(gy/24);if(!detours.has(k))detours.set(k,[]);detours.get(k).push(L)}
+    }
+  }
+  for(const list of detours.values()){const n=list.length,step=Math.min(10,40/n);list.forEach((L,i)=>{const o=(i-(n-1)/2)*step;if(L.det.gx!==undefined)L.det.gx+=o;else L.det.gy+=o})}
+  for(const L of lines){
+    const {p0,p3,mid}=L;let pts;
+    if(L.det&&L.det.gx!==undefined)pts=[p0,[p0[0],mid],[L.det.gx,mid],[L.det.gx,L.det.y2],[p3[0],L.det.y2],p3];
+    else if(L.det)pts=[p0,[mid,p0[1]],[mid,L.det.gy],[L.det.x2,L.det.gy],[L.det.x2,p3[1]],p3];
+    else if(L.o==='h')pts=Math.abs(p0[1]-p3[1])<1.5?[p0,p3]:[p0,[mid,p0[1]],[mid,p3[1]],p3];
+    else pts=Math.abs(p0[0]-p3[0])<1.5?[p0,p3]:[p0,[p0[0],mid],[p3[0],mid],p3];
+    L.d=rounded(pts);let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);L.len=len;
+    const segs=[];for(let i=1;i<pts.length;i++)segs.push([pts[i-1],pts[i],Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1])]);
+    const s=segs.reduce((a,b)=>b[2]>a[2]?b:a);L.lab=[(s[0][0]+s[1][0])/2,(s[0][1]+s[1][1])/2];
+  }
+  return lines;
+}
+function drawEdges(d,el,opts={}){
+  el=el||d.el;const svg=el.querySelector('svg.edges'),lines=route(d,planLines(d,opts));d.lines=lines;
+  const motion=MOTION&&!opts.print;let out='';
+  lines.forEach((L,i)=>{
+    const st=EDGE[L.kind]||EDGE.dep,c=st.c,dash=st.dash&&!L.trunk?st.dash:'';
+    out+=`<g class="edge${L.trunk?' trunk':''}${L.hl?' hl':''}${dash?' dashed':''}" data-k="${i}">`+
+      `<path class="glow" d="${L.d}" stroke="${c}" filter="url(#glowf)"/>`+
+      `<path class="ln" d="${L.d}" stroke="${c}" ${dash?`stroke-dasharray="${dash}"`:''} ${L.both?'':`marker-end="url(#m-${L.kind})"`}/>`;
+    if(motion&&(L.hl||L.trunk||LINES==='all')){
+      const n=L.hl?2:L.trunk?Math.min(3,L.edges.length):1,dur=Math.max(2.2,L.len/120);
+      for(let k=0;k<n;k++){const rev=L.both&&k%2===1;
+        out+=`<circle class="packet" r="${L.trunk?3:2.6}" fill="${c}" style="filter:drop-shadow(0 0 4px ${c})"><animateMotion dur="${dur.toFixed(2)}s" begin="-${(dur*k/n).toFixed(2)}s" repeatCount="indefinite" path="${L.d}"${rev?' keyPoints="1;0" keyTimes="0;1" calcMode="linear"':''}/></circle>`}
+    }
+    const showLab=L.label&&(L.trunk||L.hl||LINES==='all'||opts.print);
+    if(showLab){const w=L.label.length*5.9+16;out+=`<g class="chip"><rect x="${(L.lab[0]-w/2).toFixed(1)}" y="${(L.lab[1]-9).toFixed(1)}" width="${w.toFixed(1)}" height="18" rx="9" stroke="${c}"/><text x="${L.lab[0].toFixed(1)}" y="${(L.lab[1]+3.6).toFixed(1)}" text-anchor="middle" fill="${c}">${esc(L.label)}</text></g>`}
+    if(!opts.print)out+=`<path class="hit" d="${L.d}" data-k="${i}"/>`;
+    out+='</g>';
+  });
+  svg.innerHTML=out;
+  el.classList.toggle('motion',motion);
+}
+function place(d,el,opts){
+  el=el||d.el;
+  for(const g of d.groups){const r=groupRect(d,g.id),ge=el.querySelector(`.group[data-g="${g.id}"]`);Object.assign(ge.style,{left:r.x+'px',top:r.y+'px',width:r.w+'px',height:r.h+'px'})}
+  for(const n of d.nodes){const r=nodeRect(d,n.id),te=el.querySelector(`.tile[data-id="${n.id}"]`);Object.assign(te.style,{left:r.x+'px',top:r.y+'px',width:r.w+'px',height:r.h+'px'});te.classList.toggle('hidden',hiddenNode(d,n.id))}
+  drawEdges(d,el,opts); if(el===d.el)paintFocus(d);
+}
+function paintFocus(d){
+  const el=d.el,F=d.focus; el.classList.toggle('focus',!!F);
+  el.querySelectorAll('.hl').forEach(x=>{if(!x.classList.contains('edge'))x.classList.remove('hl')});
+  if(!F)return; const keep=new Set(F);
+  for(const L of d.lines||[])if(L.hl)for(const e of L.edges){keep.add(e.a);keep.add(e.b)}
+  for(const id of keep){
+    if(d.byId[id]){const t=el.querySelector(`.tile[data-id="${id}"]`);if(t)t.classList.add('hl');const g=el.querySelector(`.group[data-g="${d.byId[id].g}"]`);if(g)g.classList.add('hl')}
+    else{const g=el.querySelector(`.group[data-g="${id}"]`);if(g){g.classList.add('hl');d.nodes.filter(n=>n.g===id).forEach(n=>el.querySelector(`.tile[data-id="${n.id}"]`).classList.add('hl'))}}
+  }
+}
+
+/* ---------------------------------------------------------------- view, tabs, selection */
+const vp=$('#viewport');let cur=null;const views={};let hoverId=null,selKey=null;
+function setView(d,v){views[d.id]=v;d.el.style.transform=`translate(${v.x}px,${v.y}px) scale(${v.k})`;
+  vp.style.setProperty('--gs',24*v.k+'px');vp.style.setProperty('--gx',v.x+'px');vp.style.setProperty('--gy',v.y+'px');minimap()}
+function fit(d){
+  const L=innerWidth>860&&!$('#layers').classList.contains('closed')?328:0,R=innerWidth>860&&!$('#drawer').classList.contains('closed')?368:0;
+  const b=bbox(d),W=innerWidth-L-R,H=innerHeight-170,k=Math.min(1.15,Math.max(.12,Math.min(W/b.w,H/b.h)));
+  setView(d,{k,x:L+(W-b.w*k)/2-b.x*k,y:86+(H-b.h*k)/2-b.y*k});
+}
+function setFocus(ids){cur.focus=ids&&ids.length?new Set(ids):null;drawEdges(cur);paintFocus(cur)}
+function refocus(){
+  if(selKey&&selKey.startsWith('n:'))return setFocus([selKey.slice(2)]);
+  if(selKey&&selKey.startsWith('g:')){const g=selKey.slice(2);return setFocus([g,...cur.nodes.filter(n=>n.g===g).map(n=>n.id)])}
+  if(selKey&&selKey.startsWith('b:'))return setFocus(selKey.slice(2).split(','));
+  setFocus(hoverId?[hoverId]:null);
+}
+function showTab(id){
+  cur=ATLAS.find(d=>d.id===id)||ATLAS[0];for(const d of ATLAS)d.el.classList.toggle('on',d===cur);
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.id===cur.id));
+  selKey=null;hoverId=null;closeDrawer();cur.focus=null;place(cur);
+  if(views[cur.id])setView(cur,views[cur.id]);else fit(cur);
+  pref('tab',cur.id);buildFilters();buildLegend();buildWarnings();
+  $('#stats').textContent=`${cur.title} · ${cur.nodes.length} items · ${cur.edges.length} connections`;
+}
+const nameOf=x=>cur.byId[x]?cur.byId[x].n:((cur.groups.find(g=>g.id===x)||{label:x}).label+' (group)');
+function connList(edges,id,gid){
+  return edges.map(e=>{const out=e.a===id||e.a===gid,other=out?e.b:e.a,st=EDGE[e.kind]||EDGE.dep;
+    return `<button class="conn" data-go="${esc(other)}"><i style="background:${st.c}"></i>${out?'→':'←'} ${esc(nameOf(other))}<small>${esc(e.label||st.label)}${(e.a===gid||e.b===gid)&&id!==gid?' · via its group':''}</small></button>`}).join('');
+}
+function openDrawer(html){$('#detail').innerHTML=html;$('#drawer').classList.remove('closed');
+  $('#detail').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const x=b.dataset.go;cur.byId[x]?selectNode(x,true):selectGroup(x,true)})}
+function closeDrawer(){$('#drawer').classList.add('closed')}
+function selectNode(id,center){
+  const n=cur.byId[id];if(!n)return;selKey='n:'+id;refocus();
+  cur.el.querySelectorAll('.tile.sel').forEach(t=>t.classList.remove('sel'));cur.el.querySelector(`.tile[data-id="${id}"]`).classList.add('sel');
+  const g=cur.groups.find(g=>g.id===n.g),t=TYPES[n.t]||TYPES.service;
+  const edges=liveEdges(cur).filter(e=>e.a===id||e.b===id||e.a===n.g||e.b===n.g);
+  openDrawer(`<h4>${esc(n.n)}</h4><div class="sub">${esc(n.sub||t.label)} · ${esc(g.label)}</div>`+
+    `<div class="kvs">${Object.entries(Object.assign({},n.f,n.more)).map(([k,v])=>`<span>${esc(k)}</span><b>${esc(v)}</b>`).join('')}</div>`+
+    (n.note?`<p>⚠ ${esc(n.note)}</p>`:'')+(n.link?`<p><a href="${esc(n.link)}" target="_top">${esc(n.linkLabel||'Open')} →</a></p>`:'')+(n.text?`<div style="white-space:pre-line;color:#d8dfeb">${esc(n.text)}</div>`:'')+
+    (n.items?`<h3 style="margin:14px 0 6px;font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim)">${esc(n.itemsLabel||'Contains')}</h3><div class="kvs">${n.items.map(([a,b])=>`<span>${esc(a)}</span><b>${esc(b||'')}</b>`).join('')}</div>`:'')+
+    (edges.length?`<h3 style="margin:14px 0 8px;font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim)">Connections · ${edges.length}</h3>`+connList(edges,id,n.g):''));
+  if(center)focusRect(nodeRect(cur,id));
+}
+function selectGroup(gid,center){
+  const g=cur.groups.find(x=>x.id===gid);if(!g)return;selKey='g:'+gid;refocus();
+  const ids=new Set([gid,...cur.nodes.filter(n=>n.g===gid).map(n=>n.id)]);
+  const edges=liveEdges(cur).filter(e=>(ids.has(e.a)||ids.has(e.b))&&groupOf(cur,e.a)!==groupOf(cur,e.b));
+  openDrawer(`<h4>${esc(g.label)}</h4><div class="sub">${cur.nodes.filter(n=>n.g===gid).length} items${g.desc?' · '+esc(g.desc):''}</div>`+
+    `<h3 style="margin:14px 0 8px;font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim)">Links to other groups · ${edges.length}</h3>`+
+    edges.map(e=>{const st=EDGE[e.kind]||EDGE.dep;return `<button class="conn" data-go="${esc(ids.has(e.a)?e.b:e.a)}"><i style="background:${st.c}"></i>${esc(nameOf(e.a))} → ${esc(nameOf(e.b))}<small>${esc(e.label||st.label)}</small></button>`}).join(''));
+  if(center)focusRect(groupRect(cur,gid));
+}
+function selectBundle(L){
+  const ids=[...new Set(L.edges.flatMap(e=>[e.a,e.b]))];selKey='b:'+ids.join(',');refocus();
+  openDrawer(`<h4>${esc(nameOf(L.a).replace(' (group)',''))} ↔ ${esc(nameOf(L.b).replace(' (group)',''))}</h4><div class="sub">${L.edges.length} connection${L.edges.length>1?'s':''} in this line</div><div style="height:10px"></div>`+
+    L.edges.map(e=>{const st=EDGE[e.kind]||EDGE.dep;return `<button class="conn" data-go="${esc(e.a)}"><i style="background:${st.c}"></i>${esc(nameOf(e.a))} → ${esc(nameOf(e.b))}<small>${esc(e.label||st.label)}</small></button>`}).join(''));
+}
+function clearSel(){selKey=null;cur.el.querySelectorAll('.tile.sel').forEach(t=>t.classList.remove('sel'));closeDrawer();refocus()}
+function focusRect(r){const v=views[cur.id],k=Math.max(v.k,.75),W=innerWidth-($('#drawer').classList.contains('closed')?0:360);setView(cur,{k,x:W/2-(r.x+r.w/2)*k,y:innerHeight/2-(r.y+r.h/2)*k})}
+
+/* ---------------------------------------------------------------- side panel */
+function buildFilters(){
+  const types=[...new Set(cur.nodes.map(n=>n.t))];cur.hide=cur.hide||new Set();
+  $('#filters').innerHTML=types.map(t=>`<label><input type="checkbox" data-t="${t}" ${cur.hide.has(t)?'':'checked'}><i class="sw" style="background:${TYPES[t].c};color:${TYPES[t].c}"></i>${esc(TYPES[t].label)}<span class="n">${cur.nodes.filter(n=>n.t===t).length}</span></label>`).join('');
+  $('#filters').querySelectorAll('input').forEach(i=>i.onchange=()=>{i.checked?cur.hide.delete(i.dataset.t):cur.hide.add(i.dataset.t);place(cur)});
+}
+function buildLegend(){
+  const kinds=[...new Set(cur.edges.map(e=>e[3]||'dep'))];if(LINES==='bundled')kinds.push('mix');
+  $('#legend').innerHTML=kinds.map(k=>`<div><svg viewBox="0 0 44 10"><path d="M2 5H42" stroke="${EDGE[k].c}" stroke-width="2.2" stroke-linecap="round" ${EDGE[k].dash&&k!=='mix'?`stroke-dasharray="${EDGE[k].dash}"`:''}/></svg>${EDGE[k].label}</div>`).join('')+
+    `<div style="color:var(--muted);font-size:11.5px;margin-top:8px">${LINES==='bundled'?'Bundled: links between two groups share one line with a count. Hover or click a tile to see its own links.':LINES==='focus'?'Focus: lines appear only for what you hover or select.':'All: every connection is drawn.'}</div>`;
+}
+function buildWarnings(){
+  $('#warnings').innerHTML=WARNINGS.map((w,i)=>`<button class="warnitem ${w.lvl||''}" data-w="${i}">${esc(w.t)}<small>${esc(w.d)} · ${esc((ATLAS.find(d=>d.id===w.tab)||{}).title)}</small></button>`).join('');
+  $('#warnings').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const w=WARNINGS[b.dataset.w];if(cur.id!==w.tab)showTab(w.tab);selectNode(w.node,true)});
+}
+function minimap(){
+  if(!cur)return;const mm=$('#minimap'),b=bbox(cur),s=Math.min(190/b.w,122/b.h),ox=(190-b.w*s)/2,oy=(122-b.h*s)/2;let h='';
+  for(const g of cur.groups){const r=groupRect(cur,g.id);h+=`<div style="left:${ox+(r.x-b.x)*s}px;top:${oy+(r.y-b.y)*s}px;width:${r.w*s}px;height:${r.h*s}px;background:${g.c};opacity:.55"></div>`}
+  const v=views[cur.id];if(v)h+=`<div class="vp" style="left:${(-v.x/v.k-b.x)*s+ox}px;top:${(-v.y/v.k-b.y)*s+oy}px;width:${innerWidth/v.k*s}px;height:${innerHeight/v.k*s}px"></div>`;
+  mm.innerHTML=h;mm.onclick=e=>{const rr=mm.getBoundingClientRect(),wx=(e.clientX-rr.left-ox)/s+b.x,wy=(e.clientY-rr.top-oy)/s+b.y,v=views[cur.id];setView(cur,{k:v.k,x:innerWidth/2-wx*v.k,y:innerHeight/2-wy*v.k})};
+}
+
+/* ---------------------------------------------------------------- pointer interaction */
+let drag=null;
+vp.addEventListener('pointerdown',e=>{
+  if(e.button!==0)return;const v=views[cur.id],tile=e.target.closest('.tile'),head=e.target.closest('.ghead'),hit=e.target.closest('.hit');
+  drag={sx:e.clientX,sy:e.clientY,moved:false,v:{...v}};
+  if(hit){drag.kind='hit';drag.k=+hit.dataset.k}
+  else if(tile){drag.kind='n';drag.id=tile.dataset.id;drag.o=[...off(cur,'n',drag.id)]}
+  else if(head){drag.kind='g';drag.id=head.dataset.g;drag.o=[...off(cur,'g',drag.id)]}
+  else{drag.kind='pan';vp.classList.add('panning')}
+  vp.setPointerCapture(e.pointerId);
+});
+vp.addEventListener('pointermove',e=>{
+  if(!drag){const t=e.target.closest('.tile'),id=t?t.dataset.id:null;if(id!==hoverId){hoverId=id;if(!selKey)refocus()}return}
+  const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.abs(dx)+Math.abs(dy)>4)drag.moved=true;if(!drag.moved)return;
+  if(drag.kind==='pan'){setView(cur,{k:drag.v.k,x:drag.v.x+dx,y:drag.v.y+dy});return}
+  if(drag.kind==='hit')return;
+  const k=views[cur.id].k,sk=cur.sk;store[sk]=store[sk]||{n:{},g:{}};store[sk][drag.kind]=store[sk][drag.kind]||{};
+  store[sk][drag.kind][drag.id]=[drag.o[0]+dx/k,drag.o[1]+dy/k];place(cur);
+});
+vp.addEventListener('pointerup',()=>{
+  if(!drag)return;vp.classList.remove('panning');const dr=drag;drag=null;
+  if(dr.moved&&(dr.kind==='n'||dr.kind==='g')){save();minimap();return}
+  if(dr.moved)return;
+  if(dr.kind==='n'){const n=cur.byId[dr.id];if(n&&n.t!=='note')selectNode(dr.id,false)}
+  else if(dr.kind==='g')selectGroup(dr.id,false);
+  else if(dr.kind==='hit'){const L=cur.lines[dr.k];if(L)L.trunk&&L.edges.length>1?selectBundle(L):(L.edges[0]&&cur.byId[L.edges[0].a]?selectNode(L.edges[0].a,false):selectBundle(L))}
+  else clearSel();
+});
+vp.addEventListener('pointerleave',()=>{if(!drag&&hoverId){hoverId=null;if(!selKey)refocus()}});
+vp.addEventListener('wheel',e=>{e.preventDefault();const v=views[cur.id],mx=e.clientX,my=e.clientY,k=Math.min(2.5,Math.max(.1,v.k*Math.exp(-e.deltaY*.0015)));setView(cur,{k,x:mx-(mx-v.x)*k/v.k,y:my-(my-v.y)*k/v.k})},{passive:false});
+function zoomBy(f){const v=views[cur.id],mx=innerWidth/2,my=innerHeight/2,k=Math.min(2.5,Math.max(.1,v.k*f));setView(cur,{k,x:mx-(mx-v.x)*k/v.k,y:my-(my-v.y)*k/v.k})}
+$('#zin').onclick=()=>zoomBy(1.25);$('#zout').onclick=()=>zoomBy(.8);$('#fitBtn').onclick=()=>fit(cur);
+$('#resetBtn').onclick=()=>{delete store[cur.sk];save();place(cur);fit(cur)};
+$('#layersBtn').onclick=()=>{const c=$('#layers').classList.toggle('closed');pref('layers',c?'closed':'open')};
+$('#drawerClose').onclick=clearSel;
+addEventListener('resize',minimap);
+
+/* ---------------------------------------------------------------- palette search */
+let hits=[],hi=0;
+function openPalette(){$('#palette').classList.remove('closed');$('#pq').value='';runSearch();setTimeout(()=>$('#pq').focus(),10)}
+function closePalette(){$('#palette').classList.add('closed')}
+function runSearch(){
+  const q=$('#pq').value.trim().toLowerCase();hits=[];
+  for(const d of ATLAS)for(const n of d.nodes){if(n.t==='note'&&!q)continue;const hay=[n.n,n.sub,(TYPES[n.t]||{}).label,n.note,n.text,...Object.entries(Object.assign({},n.f,n.more)).flat(),...(n.items||[]).flat()].join(' ').toLowerCase();if(!q||hay.includes(q))hits.push([d,n])}
+  if(!q)hits=hits.filter(([d])=>d===cur).slice(0,12);hits=hits.slice(0,60);hi=0;paintHits();
+}
+function paintHits(){
+  $('#presults').innerHTML=hits.map(([d,n],i)=>{const t=TYPES[n.t]||TYPES.service;return `<button class="result${i===hi?' on':''}" data-r="${i}"><span class="ic" style="--c:${t.c}">${icon(n.icon||t.icon)}</span><span>${esc(n.n)}<small>${esc(d.title)} · ${esc((d.groups.find(g=>g.id===n.g)||{}).label)}${n.f&&n.f.IP?' · '+esc(n.f.IP):''}</small></span></button>`}).join('')||'<div style="padding:14px;color:var(--muted)">No matches.</div>';
+  $('#presults').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>pick(+b.dataset.r));
+}
+function pick(i){const h=hits[i];if(!h)return;closePalette();const [d,n]=h;if(cur!==d)showTab(d.id);selectNode(n.id,true)}
+$('#searchBtn').onclick=openPalette;$('#pq').oninput=runSearch;
+$('#palette').onclick=e=>{if(e.target.id==='palette')closePalette()};
+addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette();return}
+  if(!$('#palette').classList.contains('closed')){
+    if(e.key==='Escape')closePalette();
+    else if(e.key==='ArrowDown'){hi=Math.min(hits.length-1,hi+1);paintHits();e.preventDefault()}
+    else if(e.key==='ArrowUp'){hi=Math.max(0,hi-1);paintHits();e.preventDefault()}
+    else if(e.key==='Enter')pick(hi);
+    return;
+  }
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  if(e.key==='/'){e.preventDefault();openPalette()}
+  else if(e.key==='Escape')clearSel();
+  else if(e.key==='f')fit(cur);
+  else if(/^[1-9]$/.test(e.key)&&ATLAS[+e.key-1])showTab(ATLAS[+e.key-1].id);
+});
+
+/* ---------------------------------------------------------------- PDF export */
+const PAPER={A1:[841,594],A2:[594,420],A3:[420,297],A4:[297,210],Letter:[279.4,215.9]};
+$('#exportBtn').onclick=e=>{e.stopPropagation();$('#exportMenu').classList.toggle('hidden')};
+document.addEventListener('click',e=>{if(!e.target.closest('#exportMenu')&&!e.target.closest('#exportBtn'))$('#exportMenu').classList.add('hidden')});
+$('#doExport').onclick=()=>{buildPrint($('#expPaper').value,$('#expStyle').value,$('#expWhat').value==='all'?ATLAS:[cur],$('#expLines').value);$('#exportMenu').classList.add('hidden');setTimeout(()=>print(),80)};
+function buildPrint(paper,style,list,lines){
+  // Page box = whole sheet (margin 0) minus 1 mm slack; we draw an 8 mm inner margin ourselves.
+  const [mw,mh]=PAPER[paper]||PAPER.A3,px=96/25.4,M=8*px,W=mw*px-2*M,H=(mh-1)*px-2*M,HH=50;
+  $('#pagestyle').textContent=`@page{size:${mw}mm ${mh}mm;margin:0}`;   // explicit mm: Chrome has no A1/A2 keywords
+  const root=$('#print');root.innerHTML='';
+  for(const d of list){
+    const page=document.createElement('div');page.className='ppage'+(style==='light'?' light':'');page.style.width=mw+'mm';page.style.height=(mh-1)+'mm';
+    page.innerHTML=`<div class="phead" style="left:${M}px;right:${M}px;top:${M}px"><b>Hermes Lab Atlas · ${esc(d.title)}</b><span>${esc(d.blurb)}</span><span style="margin-left:auto">${DETAIL?'Detailed':'Overview'} · snapshot ${esc(SNAPSHOT)}</span></div>`;
+    const st=renderStage(d);st.classList.add('on');page.appendChild(st);root.appendChild(page);
+    const keepFocus=d.focus;d.focus=null;place(d,st,{print:true,lines:lines==='all'?'all':'bundled'});d.focus=keepFocus;
+    if(d===cur)drawEdges(d);   // restore on-screen lines (drawEdges stored print lines on d)
+    const b=bbox(d),k=Math.min(W/b.w,(H-HH-6)/b.h);
+    st.style.transform=`translate(${M+(W-b.w*k)/2-b.x*k}px,${M+HH+6+(H-HH-6-b.h*k)/2-b.y*k}px) scale(${k})`;
+  }
+}
+addEventListener('afterprint',()=>{$('#print').innerHTML=''});
+
+/*__DATA__*/
+
+/* ---------------------------------------------------------------- boot */
+// served by the portal: follow and offer the Roundtable theme (the kit is absent offline)
+if(window.RTTheme){document.getElementById('rtPickSlot').innerHTML='<label class="rt-pick" title="Theme for every Roundtable page">◐ <select data-rt-theme aria-label="Theme"></select></label>';RTTheme.fill()}
+// served by the portal: ask Miriel to redraw from the live lab now
+if(window.RTTheme&&/^https?:$/.test(location.protocol)&&!window.DEPMAP){
+  const b=document.createElement('button');b.className='tbtn';b.id='redrawBtn';b.title='Miriel redraws the Atlas from the live lab (about a minute)';
+  b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg><span class="lbl">Redraw</span>';
+  document.getElementById('rtPickSlot').after(b);
+  const st=()=>fetch('/api/atlas/status',{cache:'no-store'}).then(r=>r.json()).catch(()=>({}));
+  b.onclick=async()=>{
+    b.disabled=true;const lbl=b.querySelector('.lbl');lbl.textContent='Redrawing…';const g0=(await st()).generated;
+    const r=await fetch('/api/atlas/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>null);
+    if(!r||!r.ok){lbl.textContent='Not allowed';setTimeout(()=>{lbl.textContent='Redraw';b.disabled=false},3000);return}
+    for(let i=0;i<40;i++){await new Promise(z=>setTimeout(z,3000));const s=await st();if(s.generated&&s.generated!==g0&&!s.busy)return location.reload()}
+    lbl.textContent='Still working; reload later';b.disabled=false};
+}
+$('#snap').textContent=SNAPSHOT;
+$('#defs').innerHTML=`<filter id="glowf" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>`+
+  Object.entries(EDGE).map(([k,e])=>`<marker id="m-${k}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1L9 5L0 9z" fill="${e.c}"/></marker>`).join('');
+for(const d of ATLAS){d.allNodes=d.nodes;d.allGroups=d.groups}
+function build(){
+  TW=DETAIL?276:240;MAXF=DETAIL?99:4;
+  for(const d of ATLAS){
+    d.sk=d.id+(DETAIL?':detail':'');d.groups=d.allGroups.filter(vis);const gids=new Set(d.groups.map(g=>g.id));
+    d.nodes=d.allNodes.filter(n=>vis(n)&&gids.has(n.g));d.groups=d.groups.filter(g=>d.nodes.some(n=>n.g===g.id));
+    d.byId=Object.fromEntries(d.nodes.map(n=>[n.id,n]));d.focus=null;
+    layout(d);if(d.el)d.el.remove();d.el=renderStage(d);vp.appendChild(d.el);place(d);delete views[d.id];
+  }
+  syncSeg();
+}
+function syncSeg(){
+  document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='detail')===DETAIL));
+  document.querySelectorAll('#lines button').forEach(b=>b.classList.toggle('on',b.dataset.v===LINES));
+  $('#motionBtn').classList.toggle('on',MOTION);
+}
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{DETAIL=b.dataset.v==='detail';pref('mode',b.dataset.v);const id=cur?cur.id:'arch';build();showTab(id)});
+document.querySelectorAll('#lines button').forEach(b=>b.onclick=()=>{LINES=b.dataset.v;pref('lines',LINES);syncSeg();buildLegend();refocus()});
+$('#motionBtn').onclick=()=>{MOTION=!MOTION;pref('motion',MOTION?'on':'off');syncSeg();refocus()};
+// Deep links: #tab=net&mode=detail&lines=all  (add &pdf=all|one&paper=A1&style=light to prepare print pages)
+const HASH=Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+DETAIL=(HASH.mode||pref('mode'))==='detail';
+LINES=HASH.lines||pref('lines')||'bundled';
+if(pref('motion'))MOTION=pref('motion')==='on';
+if(pref('layers')==='closed'||innerWidth<860)$('#layers').classList.add('closed');
+build();
+$('#tabs').innerHTML=ATLAS.map((d,i)=>`<button data-id="${d.id}" title="Shortcut: ${i+1}">${esc(d.title)}</button>`).join('');
+$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>showTab(b.dataset.id));
+showTab(HASH.tab||pref('tab')||'arch');
+if(HASH.select&&cur.byId[HASH.select])selectNode(HASH.select,true);
+if(HASH.pdf)buildPrint(HASH.paper||'A3',HASH.style||'dark',HASH.pdf==='all'?ATLAS:[cur],HASH.lines);
+</script>
+</body>
+</html>

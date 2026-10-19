@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""openbao-lxc: summarize the OpenBao audit log for Varys (keeper.py), without values.
+
+Reads /var/log/openbao/audit.log and audit.log.1 (OpenBao HMACs secret values in it), keeps the last 7 days and
+writes /var/lib/openbao-report/summary.json: request counts per token display name, client addresses, and the last
+denied and root-token requests (time, name, path, operation). The forced-command SSH user bao-report can only cat it.
+Run hourly by openbao-audit-summary.timer as root.
+"""
+import datetime as dt
+import json
+import os
+from collections import Counter
+
+LOGS = ["/var/log/openbao/audit.log.1", "/var/log/openbao/audit.log"]
+OUT = "/var/lib/openbao-report/summary.json"
+DAYS = 7
+
+cut = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=DAYS)).strftime("%Y-%m-%dT%H:%M:%S")
+by_name, remotes, denied, root, n = Counter(), set(), [], [], 0
+for f in LOGS:
+    if not os.path.exists(f):
+        continue
+    with open(f, errors="replace") as fh:
+        for line in fh:
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            if e.get("type") != "response" or e.get("time", "") < cut:
+                continue
+            req, auth = e.get("request") or {}, e.get("auth") or {}
+            path = req.get("path", "")
+            if path.startswith("sys/health") or path.startswith("sys/seal-status") or path.startswith("sys/metrics"):
+                continue
+            n += 1
+            name = auth.get("display_name") or "(none)"
+            by_name[name] += 1
+            if req.get("remote_address"):
+                remotes.add(req["remote_address"])
+            ev = {"time": e["time"][:19], "name": name, "path": path, "op": req.get("operation", "")}
+            if "permission denied" in str(e.get("error", "")):
+                denied.append(ev)
+            if "root" in (auth.get("policies") or []):
+                root.append(ev)
+os.makedirs(os.path.dirname(OUT), exist_ok=True)
+tmp = OUT + ".tmp"
+with open(tmp, "w") as fh:
+    json.dump({"generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"), "days": DAYS,
+               "requests": n, "by_name": dict(by_name), "remotes": sorted(remotes), "denied": len(denied),
+               "root": len(root), "denied_events": denied[-100:], "root_events": root[-100:]}, fh)
+os.chmod(tmp, 0o644)
+os.replace(tmp, OUT)

@@ -1,0 +1,5344 @@
+{
+  "about": "Hermes Lab Atlas layout, owned by Miriel (atlas.py). Hand-edit groups, positions, labels and notes here; nodes with a 'live' key are kept current from Proxmox, Docker, Omada, systemd and agents.json. 'base' is what the lab looked like when the node was placed: a live value that differs overrides the text. Move items out of the 'New · needs placing' group by adding them here.",
+  "base_taken": "2026-10-18T12:22",
+  "container_hosts": [
+    "docker-lxc-glance",
+    "docker-lxc-media",
+    "docker-vm-core-utilities01"
+  ],
+  "ignore_containers": "^(alloy|watchtower|node-exporter)$|-(redis|postgres|meilisearch|chrome|worker)$",
+  "hidden_containers": [],
+  "atlas": [
+    {
+      "id": "arch",
+      "title": "Architecture",
+      "blurb": "How the lab fits together, from the internet to the agents",
+      "groups": [
+        {
+          "id": "people",
+          "label": "People & Devices",
+          "c": "#cbd5e1",
+          "cols": 1
+        },
+        {
+          "id": "edge",
+          "label": "Internet & Edge",
+          "c": "#22d3ee",
+          "cols": 2,
+          "desc": "How traffic gets in and out"
+        },
+        {
+          "id": "access",
+          "label": "Access, Identity & DNS",
+          "c": "#a78bfa",
+          "cols": 2
+        },
+        {
+          "id": "cluster",
+          "label": "MorpheusCluster · Proxmox VE 9.2",
+          "c": "#4f8cff",
+          "cols": 2,
+          "desc": "3 nodes + QDevice · 22 guests (3 templates)"
+        },
+        {
+          "id": "storage",
+          "label": "Storage & Backup",
+          "c": "#f59e0b",
+          "cols": 1
+        },
+        {
+          "id": "platform",
+          "label": "Platform & Automation",
+          "c": "#34d399",
+          "cols": 2,
+          "desc": "GitOps: push to main → CI → Ansible over SSH"
+        },
+        {
+          "id": "obs",
+          "label": "Observability & Dashboards",
+          "c": "#f472b6",
+          "cols": 2
+        },
+        {
+          "id": "rt",
+          "label": "Roundtable · CT211 codex-agent-lxc",
+          "c": "#fb923c",
+          "cols": 2,
+          "desc": "192.168.40.16 · systemd services + timers"
+        },
+        {
+          "id": "ext",
+          "label": "Clouds & Channels",
+          "c": "#94a3b8",
+          "cols": 1
+        },
+        {
+          "id": "anotes",
+          "label": "Notes",
+          "c": "#facc15",
+          "cols": 4,
+          "detail": true
+        }
+      ],
+      "layout": [
+        [
+          "people",
+          "edge",
+          "access"
+        ],
+        [
+          "cluster",
+          "storage",
+          "platform"
+        ],
+        [
+          "obs",
+          "rt",
+          "ext"
+        ],
+        [
+          "anotes"
+        ]
+      ],
+      "nodes": [
+        {
+          "id": "hermes",
+          "g": "people",
+          "t": "person",
+          "n": "Hermes",
+          "f": {
+            "role": "owner · final approver",
+            "approves": "✅ in Discord"
+          }
+        },
+        {
+          "id": "kratos",
+          "g": "people",
+          "t": "device",
+          "n": "Kratos PC",
+          "f": {
+            "IP": "192.168.10.10",
+            "runs": "Claude Code · Companion"
+          },
+          "icon": "pc"
+        },
+        {
+          "id": "phone",
+          "g": "people",
+          "t": "device",
+          "n": "Phone · S26 Ultra",
+          "f": {
+            "IP": "192.168.10.53",
+            "uses": "Discord · portal"
+          },
+          "icon": "phone"
+        },
+        {
+          "id": "isp",
+          "g": "edge",
+          "t": "internet",
+          "n": "Converge Fiber",
+          "f": {
+            "ONT": "EG8245H5",
+            "gateway": "192.168.100.1"
+          }
+        },
+        {
+          "id": "er605",
+          "g": "edge",
+          "t": "router",
+          "n": "ER605 Core Router",
+          "f": {
+            "IP": "192.168.0.1",
+            "networks": "8 VLANs",
+            "ACLs": "disabled 2026-10-16"
+          },
+          "s": "warn",
+          "note": "Inter-VLAN traffic unfiltered",
+          "live": {
+            "device": "192.168.0.1",
+            "base": {
+              "online": true,
+              "name": "Core Router"
+            }
+          }
+        },
+        {
+          "id": "cf",
+          "g": "edge",
+          "t": "cloud",
+          "n": "Cloudflare",
+          "f": {
+            "DNS": "hrmsmrflrii.xyz",
+            "TLS": "LE wildcard (DNS-01)"
+          }
+        },
+        {
+          "id": "ts",
+          "g": "edge",
+          "t": "cloud",
+          "n": "Tailscale",
+          "f": {
+            "router": "node01 (subnet)",
+            "routes": "VLAN 20 · 40 · 90",
+            "DNS": "split → Technitium + Pi-hole"
+          }
+        },
+        {
+          "id": "traefik",
+          "g": "access",
+          "t": "security",
+          "n": "Traefik",
+          "f": {
+            "host": "CT203 · node01",
+            "IP": "192.168.40.20",
+            "role": "reverse proxy · TLS",
+            "traces": "OTLP → Jaeger"
+          },
+          "icon": "dns",
+          "s": "ok",
+          "live": {
+            "guest": 203,
+            "base": {
+              "name": "traefik-lxc",
+              "node": "node01",
+              "ip": "192.168.40.20",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "authentik",
+          "g": "access",
+          "t": "security",
+          "n": "Authentik SSO",
+          "f": {
+            "host": "CT204 · node02",
+            "IP": "192.168.40.21",
+            "login": "Google SSO",
+            "mode": "ForwardAuth"
+          },
+          "icon": "key",
+          "s": "ok",
+          "live": {
+            "guest": 204,
+            "base": {
+              "name": "authentik-lxc",
+              "node": "node02",
+              "ip": "192.168.40.21",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "pihole",
+          "g": "access",
+          "t": "dns",
+          "n": "Pi-hole + Unbound (secondary)",
+          "f": {
+            "host": "CT202 · node01",
+            "IP": "192.168.90.53",
+            "serves": "secondary DNS, all VLANs"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 202,
+            "base": {
+              "name": "pihole",
+              "node": "node01",
+              "ip": "192.168.90.53",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "opn",
+          "g": "access",
+          "t": "dns",
+          "n": "Technitium DNS (primary)",
+          "f": {
+            "host": "homelab-dns01 · bare metal",
+            "IP": "192.168.90.60",
+            "serves": "primary DNS, all VLANs",
+            "UI": "dns.hrmsmrflrii.xyz"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "node01",
+          "g": "cluster",
+          "t": "node",
+          "n": "node01",
+          "f": {
+            "IP": "192.168.20.20",
+            "guests": "9 LXC · 2 VM",
+            "role": "primary · Tailscale"
+          },
+          "badge": 11,
+          "s": "warn",
+          "more": {
+            "CPU": "Ryzen 9 PRO 8945HS · 16 thr",
+            "RAM": "60 GiB (60 allocated)",
+            "disk": "1 TB NVMe",
+            "NIC": "2.5G"
+          },
+          "itemsLabel": "Guests",
+          "items": [
+            [
+              "VM103 ansible-controller01",
+              "2c · 8G"
+            ],
+            [
+              "VM107 docker-vm-core-utilities01",
+              "4c · 24G"
+            ],
+            [
+              "CT200 docker-lxc-glance",
+              "2c · 4G"
+            ],
+            [
+              "CT201 docker-lxc-bots",
+              "2c · 2G"
+            ],
+            [
+              "CT202 pihole",
+              "2c · 1G"
+            ],
+            [
+              "CT203 traefik-lxc",
+              "2c · 2G"
+            ],
+            [
+              "CT205 docker-lxc-media",
+              "4c · 8G"
+            ],
+            [
+              "CT206 homeassistant-lxc",
+              "2c · 4G"
+            ],
+            [
+              "CT209 homepage-lxc",
+              "2c · 1G"
+            ],
+            [
+              "CT210 helios-lxc",
+              "2c · 2G"
+            ],
+            [
+              "CT211 codex-agent-lxc",
+              "4c · 4G"
+            ]
+          ],
+          "live": {
+            "pve": "node01",
+            "guests_field": "guests"
+          }
+        },
+        {
+          "id": "node02",
+          "g": "cluster",
+          "t": "node",
+          "n": "node02",
+          "f": {
+            "IP": "192.168.20.21",
+            "guests": "4 LXC · 1 VM"
+          },
+          "badge": 5,
+          "s": "ok",
+          "more": {
+            "CPU": "Ryzen 9 6900HX · 16 thr",
+            "RAM": "28 GiB (14 allocated)",
+            "disk": "1 TB NVMe",
+            "NIC": "2.5G"
+          },
+          "itemsLabel": "Guests",
+          "items": [
+            [
+              "VM121 gitlab-runner-vm01",
+              "2c · 2G"
+            ],
+            [
+              "CT204 authentik-lxc",
+              "2c · 4G"
+            ],
+            [
+              "CT207 chronicle-lxc",
+              "2c · 2G"
+            ],
+            [
+              "CT212 study-lxc",
+              "2c · 2G"
+            ],
+            [
+              "CT213 openbao-lxc",
+              "2c · 1G"
+            ]
+          ],
+          "live": {
+            "pve": "node02",
+            "guests_field": "guests"
+          }
+        },
+        {
+          "id": "node03",
+          "g": "cluster",
+          "t": "node",
+          "n": "node03 · Atreus PC",
+          "f": {
+            "IP": "192.168.20.22",
+            "guests": "PBS · 2 VM · 2 tpl",
+            "CPU": "Ryzen 9 5900XT"
+          },
+          "badge": 3,
+          "s": "warn",
+          "more": {
+            "threads": "32",
+            "RAM": "31 GiB (31.8 allocated)",
+            "disks": "2× 1 TB NVMe · 1 TB SSD · 4 TB HDD",
+            "NIC": "2.5G"
+          },
+          "itemsLabel": "Guests",
+          "items": [
+            [
+              "CT100 pbs-server",
+              "2c · 4G"
+            ],
+            [
+              "VM106 gitlab-vm01",
+              "2c · 11.8G"
+            ],
+            [
+              "VM108 immich-vm01",
+              "2c · 16G"
+            ],
+            [
+              "VM9022 WS2022 (template)",
+              "off"
+            ],
+            [
+              "VM9025 WS2025 (template)",
+              "off"
+            ]
+          ],
+          "live": {
+            "pve": "node03"
+          }
+        },
+        {
+          "id": "qdev",
+          "g": "cluster",
+          "t": "node",
+          "n": "QDevice",
+          "f": {
+            "role": "quorum tie-breaker"
+          },
+          "icon": "clock",
+          "more": {
+            "host": "not recorded in the docs"
+          }
+        },
+        {
+          "id": "nas",
+          "g": "storage",
+          "t": "storage",
+          "n": "Synology · Callimachus",
+          "f": {
+            "IP": "192.168.20.32 (10GbE)",
+            "NFS": "VMDisks · ISOs · LXC · Media · Data"
+          },
+          "s": "ok",
+          "note": "eth0 192.168.20.31 is dead",
+          "more": {
+            "volume": "Volume 2 · 12.6 / 26.9 TB (47%)",
+            "drives": "4 HDD + 2 M.2 · all Normal"
+          },
+          "itemsLabel": "NFS exports",
+          "items": [
+            [
+              "VMDisks",
+              "/volume2/ProxmoxCluster-VMDisks"
+            ],
+            [
+              "ISOs",
+              "shared volume"
+            ],
+            [
+              "LXC configs",
+              "/volume2/Proxmox-LXCs"
+            ],
+            [
+              "Media",
+              "/volume2/Proxmox-Media"
+            ],
+            [
+              "ProxmoxData",
+              "7 TB · Immich, node backups"
+            ]
+          ]
+        },
+        {
+          "id": "pbs",
+          "g": "storage",
+          "t": "backup",
+          "n": "Proxmox Backup Server",
+          "f": {
+            "host": "CT100 · node03",
+            "IP": "192.168.20.50:8007"
+          },
+          "s": "ok",
+          "more": {
+            "version": "PBS 3.4.9"
+          },
+          "itemsLabel": "Datastores",
+          "items": [
+            [
+              "daily · 1 TB NVMe",
+              "618 / 916 GB"
+            ],
+            [
+              "main · 4 TB HDD",
+              "448 / 3666 GB"
+            ]
+          ],
+          "live": {
+            "guest": 100,
+            "base": {
+              "name": "pbs-server",
+              "node": "node03",
+              "ip": "192.168.20.50",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "gitlab",
+          "g": "platform",
+          "t": "devops",
+          "n": "GitLab CE",
+          "f": {
+            "host": "VM106 · node03",
+            "IP": "192.168.40.23",
+            "repo": "homelab-services"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 106,
+            "base": {
+              "name": "gitlab-vm01",
+              "node": "node03",
+              "ip": "192.168.40.23",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "runner",
+          "g": "platform",
+          "t": "devops",
+          "n": "GitLab Runner",
+          "f": {
+            "host": "VM121 · node02",
+            "IP": "192.168.40.24",
+            "executor": "shell"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 121,
+            "base": {
+              "name": "gitlab-runner-vm01",
+              "node": "node02",
+              "ip": "192.168.40.24",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "ansible",
+          "g": "platform",
+          "t": "devops",
+          "n": "Ansible controller",
+          "f": {
+            "host": "VM103 · node01",
+            "IP": "192.168.20.30",
+            "also": "Omada exporter"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 103,
+            "base": {
+              "name": "ansible-controller01",
+              "node": "node01",
+              "ip": "192.168.20.30",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "terraform",
+          "g": "platform",
+          "t": "devops",
+          "n": "Terraform",
+          "f": {
+            "provider": "telmate/proxmox",
+            "makes": "VMs & LXCs"
+          }
+        },
+        {
+          "id": "helios",
+          "g": "platform",
+          "t": "service",
+          "n": "Helios",
+          "f": {
+            "host": "CT210 · node01",
+            "IP": "192.168.40.14",
+            "role": "lab CLI / API"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 210,
+            "base": {
+              "name": "helios-lxc",
+              "node": "node01",
+              "ip": "192.168.40.14",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "prom",
+          "g": "obs",
+          "t": "monitor",
+          "n": "Prometheus",
+          "f": {
+            "at": "192.168.40.13:9090",
+            "scrapes": "pve · SNMP · Omada · PBS"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "grafana",
+          "g": "obs",
+          "t": "monitor",
+          "n": "Grafana",
+          "f": {
+            "at": "192.168.40.13:3030",
+            "markers": "Roundtable changes"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "loki",
+          "g": "obs",
+          "t": "monitor",
+          "n": "Loki + Alloy",
+          "f": {
+            "at": "192.168.40.13:3100",
+            "logs": "Alloy on each host"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "jaeger",
+          "g": "obs",
+          "t": "monitor",
+          "n": "OTEL + Jaeger",
+          "f": {
+            "at": "192.168.40.13:16686",
+            "from": "Traefik (100%)"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "kuma",
+          "g": "obs",
+          "t": "monitor",
+          "n": "Uptime Kuma",
+          "f": {
+            "at": "192.168.40.13:3001"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "glance",
+          "g": "obs",
+          "t": "monitor",
+          "n": "Glance",
+          "f": {
+            "host": "CT200 · :8080",
+            "URL": "glance.hrmsmrflrii.xyz",
+            "since": "redesign 2026-10-18"
+          },
+          "s": "ok",
+          "icon": "app",
+          "live": {
+            "guest": 200,
+            "base": {
+              "name": "docker-lxc-glance",
+              "node": "node01",
+              "ip": "192.168.40.12",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "bossvc",
+          "g": "rt",
+          "t": "service",
+          "n": "boss.service",
+          "f": {
+            "runs": "Gideon · chat · approvals",
+            "poll": "chat 5 s · approvals 15 s"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "boss"
+          }
+        },
+        {
+          "id": "portal",
+          "g": "rt",
+          "t": "service",
+          "n": "Roundtable portal",
+          "f": {
+            "port": "8088",
+            "URL": "roundtable.hrmsmrflrii.xyz"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "olympus-portal"
+          }
+        },
+        {
+          "id": "labfeed",
+          "g": "rt",
+          "t": "service",
+          "n": "Lab Feed",
+          "f": {
+            "port": "8790",
+            "role": "read-only lab JSON"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "labfeed"
+          }
+        },
+        {
+          "id": "sre",
+          "g": "rt",
+          "t": "service",
+          "n": "sre-agent.service",
+          "f": {
+            "role": "approved patching",
+            "window": "02:00–05:00"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "sre-agent"
+          }
+        },
+        {
+          "id": "team",
+          "g": "rt",
+          "t": "agent",
+          "n": "22 agents",
+          "f": {
+            "homelab": "22",
+            "personal": "0",
+            "specialists": "0",
+            "budget": "$65 / month"
+          },
+          "badge": 22,
+          "live": {
+            "team": true
+          }
+        },
+        {
+          "id": "discord",
+          "g": "ext",
+          "t": "channel",
+          "n": "Discord",
+          "f": {
+            "use": "chat · alerts · ✅ approvals"
+          }
+        },
+        {
+          "id": "openai",
+          "g": "ext",
+          "t": "cloud",
+          "n": "OpenAI models",
+          "f": {
+            "models": "gpt-6-luna · gpt-6(.1)-sol"
+          }
+        },
+        {
+          "id": "github",
+          "g": "ext",
+          "t": "devops",
+          "n": "GitHub",
+          "f": {
+            "repo": "herms14/homelab-hub"
+          }
+        },
+        {
+          "id": "an1",
+          "g": "anotes",
+          "t": "note",
+          "n": "How a request reaches a service",
+          "f": null,
+          "detail": true,
+          "text": "1. A *.hrmsmrflrii.xyz name resolves via Cloudflare (inside the house, via Technitium, Pi-hole as backup).\n2. Traefik (CT203) terminates TLS with the Let's Encrypt wildcard cert.\n3. Authentik ForwardAuth checks the Google SSO login.\n4. Traefik forwards to the service on its VLAN 40 address.\nRemote: Tailscale subnet routing through node01 (VLANs 20, 40, 90)."
+        },
+        {
+          "id": "an2",
+          "g": "anotes",
+          "t": "note",
+          "n": "Changes & approvals",
+          "f": null,
+          "detail": true,
+          "text": "An agent proposes a change → Discord approval card plus a GitLab issue → you react ✅ → boss.service runs the exact command → Grafana gets a \"Roundtable changes\" marker → Blaidd verifies.\nPatching: sre-agent, 02:00–05:00 Manila, backup gate first, auto-reboot, then checks."
+        },
+        {
+          "id": "an3",
+          "g": "anotes",
+          "t": "note",
+          "n": "Backups",
+          "f": null,
+          "detail": true,
+          "text": "PBS (CT100 on node03) keeps two datastores: \"daily\" on a 1 TB NVMe and \"main\" on a 4 TB HDD. Node configs go to the NAS (ProxmoxData) before patching. Iji watches backups every 30 min and reports at 08:00."
+        },
+        {
+          "id": "an4",
+          "g": "anotes",
+          "t": "note",
+          "n": "Capacity",
+          "f": null,
+          "detail": true,
+          "text": "node01: 28 vCPU on 16 threads; RAM fully allocated (60 of 60 GiB).\nnode02: 10 vCPU on 16 threads; 14 of 28 GiB.\nnode03: running guests allotted 31.8 GiB on a 31 GiB host (overcommitted)."
+        }
+      ],
+      "edges": [
+        [
+          "isp",
+          "er605",
+          "WAN",
+          "link"
+        ],
+        [
+          "er605",
+          "cluster",
+          "VLAN trunks",
+          "link"
+        ],
+        [
+          "cf",
+          "traefik",
+          "*.hrmsmrflrii.xyz",
+          "route"
+        ],
+        [
+          "ts",
+          "node01",
+          "subnet router",
+          "route"
+        ],
+        [
+          "traefik",
+          "authentik",
+          "ForwardAuth",
+          "dep"
+        ],
+        [
+          "traefik",
+          "cluster",
+          "routes to services",
+          "route"
+        ],
+        [
+          "er605",
+          "opn",
+          "DHCP: primary DNS",
+          "dep"
+        ],
+        [
+          "opn",
+          "pihole",
+          "local names synced daily",
+          "data"
+        ],
+        [
+          "cluster",
+          "nas",
+          "NFS",
+          "data"
+        ],
+        [
+          "pbs",
+          "cluster",
+          "backs up",
+          "data"
+        ],
+        [
+          "gitlab",
+          "runner",
+          "CI jobs",
+          "mgmt"
+        ],
+        [
+          "runner",
+          "ansible",
+          "deploy",
+          "mgmt"
+        ],
+        [
+          "ansible",
+          "cluster",
+          "Docker services",
+          "mgmt"
+        ],
+        [
+          "terraform",
+          "cluster",
+          "provisions",
+          "mgmt"
+        ],
+        [
+          "prom",
+          "cluster",
+          "scrapes",
+          "dep"
+        ],
+        [
+          "grafana",
+          "prom",
+          "queries",
+          "dep"
+        ],
+        [
+          "glance",
+          "labfeed",
+          "reads",
+          "dep"
+        ],
+        [
+          "labfeed",
+          "prom",
+          "reads",
+          "dep"
+        ],
+        [
+          "bossvc",
+          "discord",
+          "posts · approvals",
+          "dep"
+        ],
+        [
+          "team",
+          "openai",
+          "LLM calls",
+          "dep"
+        ],
+        [
+          "sre",
+          "cluster",
+          "patches after ✅",
+          "mgmt"
+        ],
+        [
+          "bossvc",
+          "gitlab",
+          "issues",
+          "dep"
+        ],
+        [
+          "team",
+          "grafana",
+          "change markers",
+          "dep"
+        ],
+        [
+          "team",
+          "github",
+          "docs sync",
+          "dep"
+        ],
+        [
+          "hermes",
+          "discord",
+          "approves",
+          "report"
+        ],
+        [
+          "kratos",
+          "portal",
+          "voice · chat",
+          "dep"
+        ],
+        [
+          "er605",
+          "pihole",
+          "DHCP: secondary DNS",
+          "dep"
+        ]
+      ]
+    },
+    {
+      "id": "net",
+      "title": "Network",
+      "blurb": "Physical links (live Omada port names) and the VLAN plan",
+      "groups": [
+        {
+          "id": "wan",
+          "label": "WAN",
+          "c": "#22d3ee",
+          "cols": 1
+        },
+        {
+          "id": "core",
+          "label": "Core",
+          "c": "#4f8cff",
+          "cols": 1,
+          "desc": "Omada site “Parang Marikina”"
+        },
+        {
+          "id": "sw",
+          "label": "Switches",
+          "c": "#a78bfa",
+          "cols": 1
+        },
+        {
+          "id": "wifi",
+          "label": "Wireless",
+          "c": "#34d399",
+          "cols": 1
+        },
+        {
+          "id": "hosts",
+          "label": "Compute & desktop (Zephyrus 2.5G)",
+          "c": "#60a5fa",
+          "cols": 2
+        },
+        {
+          "id": "rack",
+          "label": "Rack (Morpheus)",
+          "c": "#fb923c",
+          "cols": 1
+        },
+        {
+          "id": "nasg",
+          "label": "Storage",
+          "c": "#f59e0b",
+          "cols": 1
+        },
+        {
+          "id": "dns",
+          "label": "DNS & Remote access",
+          "c": "#f472b6",
+          "cols": 1
+        },
+        {
+          "id": "vlans",
+          "label": "VLANs",
+          "c": "#94a3b8",
+          "cols": 4,
+          "desc": "All gateways on the ER605 · DHCP pools shown"
+        },
+        {
+          "id": "nnotes",
+          "label": "Notes",
+          "c": "#facc15",
+          "cols": 3,
+          "detail": true
+        }
+      ],
+      "layout": [
+        [
+          "wan",
+          "core",
+          "sw",
+          "wifi"
+        ],
+        [
+          "hosts",
+          "rack",
+          "nasg",
+          "dns"
+        ],
+        [
+          "vlans"
+        ],
+        [
+          "nnotes"
+        ]
+      ],
+      "nodes": [
+        {
+          "id": "inet",
+          "g": "wan",
+          "t": "internet",
+          "n": "Internet",
+          "f": {}
+        },
+        {
+          "id": "ont",
+          "g": "wan",
+          "t": "router",
+          "n": "Converge ONT",
+          "f": {
+            "model": "EG8245H5",
+            "IP": "192.168.100.1"
+          }
+        },
+        {
+          "id": "er",
+          "g": "core",
+          "t": "router",
+          "n": "Core Router · ER605",
+          "f": {
+            "IP": "192.168.0.1",
+            "firmware": "2.3.3",
+            "ACLs": "disabled"
+          },
+          "s": "warn",
+          "live": {
+            "device": "192.168.0.1",
+            "base": {
+              "online": true,
+              "name": "Core Router"
+            }
+          }
+        },
+        {
+          "id": "oc300",
+          "g": "core",
+          "t": "service",
+          "n": "OC300 controller",
+          "f": {
+            "IP": "192.168.0.101",
+            "SDN": "6.2.10.18"
+          },
+          "icon": "server",
+          "s": "ok"
+        },
+        {
+          "id": "coresw",
+          "g": "core",
+          "t": "switch",
+          "n": "Core Switch · SG3210",
+          "f": {
+            "IP": "192.168.90.54",
+            "ports": "8× 1G"
+          },
+          "s": "ok",
+          "itemsLabel": "Ports up",
+          "items": [
+            [
+              "p1 OC300 controller",
+              "1G · VLAN 1"
+            ],
+            [
+              "p2 Zephyrus uplink",
+              "1G"
+            ],
+            [
+              "p3 Morpheus uplink",
+              "1G"
+            ],
+            [
+              "p6 NAS Internal 1",
+              "1G · VLAN 20"
+            ],
+            [
+              "p7 NAS Internal 2",
+              "1G"
+            ],
+            [
+              "p8 uplink (Atreus)",
+              "1G"
+            ]
+          ],
+          "live": {
+            "device": "192.168.90.54",
+            "base": {
+              "online": true,
+              "name": "Core Switch"
+            }
+          }
+        },
+        {
+          "id": "atreus",
+          "g": "sw",
+          "t": "switch",
+          "n": "Atreus · ES206GP",
+          "f": {
+            "IP": "192.168.90.50",
+            "PoE": "yes"
+          },
+          "s": "ok",
+          "itemsLabel": "Ports up (no names)",
+          "items": [
+            [
+              "p4",
+              "1G · VLAN 40"
+            ],
+            [
+              "p5 router (docs)",
+              "1G"
+            ],
+            [
+              "p6 Core Switch (docs)",
+              "1G"
+            ]
+          ],
+          "live": {
+            "device": "192.168.90.50",
+            "base": {
+              "online": true,
+              "name": "Atreus Switch"
+            }
+          }
+        },
+        {
+          "id": "zeph",
+          "g": "sw",
+          "t": "switch",
+          "n": "Zephyrus · SG3210X-M2",
+          "f": {
+            "IP": "192.168.90.58",
+            "speed": "2.5G"
+          },
+          "s": "ok",
+          "itemsLabel": "Ports up",
+          "items": [
+            [
+              "p1 Core uplink",
+              "1G"
+            ],
+            [
+              "p2 Kratos PC",
+              "2.5G"
+            ],
+            [
+              "p3 node01",
+              "2.5G"
+            ],
+            [
+              "p4 node02",
+              "2.5G"
+            ],
+            [
+              "p5 node03",
+              "2.5G"
+            ],
+            [
+              "p6 (no name)",
+              "2.5G · VLAN 20"
+            ]
+          ],
+          "live": {
+            "device": "192.168.90.58",
+            "base": {
+              "online": true,
+              "name": "Zephyrus Switch"
+            }
+          }
+        },
+        {
+          "id": "morph",
+          "g": "sw",
+          "t": "switch",
+          "n": "Morpheus Rack · SG2210P",
+          "f": {
+            "IP": "192.168.90.51",
+            "PoE": "yes"
+          },
+          "s": "ok",
+          "itemsLabel": "Ports up",
+          "items": [
+            [
+              "p1 uplink",
+              "1G"
+            ],
+            [
+              "p2 (no name)",
+              "1G"
+            ],
+            [
+              "p6 homelab-dns01 (Omada name: OPNsense Server)",
+              "1G"
+            ],
+            [
+              "p7 KVM - Internal",
+              "1G"
+            ],
+            [
+              "p8 KVM - Homelab",
+              "1G"
+            ]
+          ],
+          "live": {
+            "device": "192.168.90.51",
+            "base": {
+              "online": true,
+              "name": "Morpheus Rack Switch"
+            }
+          }
+        },
+        {
+          "id": "eap1",
+          "g": "wifi",
+          "t": "ap",
+          "n": "First Floor · EAP610",
+          "f": {
+            "IP": "192.168.90.52"
+          },
+          "s": "ok",
+          "live": {
+            "device": "192.168.90.52",
+            "base": {
+              "online": true,
+              "name": "First Floor EAP"
+            }
+          }
+        },
+        {
+          "id": "eap2",
+          "g": "wifi",
+          "t": "ap",
+          "n": "Second Floor · EAP225",
+          "f": {
+            "IP": "192.168.90.56",
+            "uplink": "not mapped"
+          },
+          "s": "ok",
+          "live": {
+            "device": "192.168.90.56",
+            "base": {
+              "online": true,
+              "name": "Second Floor EAP"
+            }
+          }
+        },
+        {
+          "id": "eap3",
+          "g": "wifi",
+          "t": "ap",
+          "n": "Outdoor · EAP603",
+          "f": {
+            "IP": "192.168.90.55",
+            "uplink": "wireless mesh"
+          },
+          "s": "ok",
+          "live": {
+            "device": "192.168.90.55",
+            "base": {
+              "online": true,
+              "name": "Outdoor EAP"
+            }
+          }
+        },
+        {
+          "id": "n1",
+          "g": "hosts",
+          "t": "node",
+          "n": "node01",
+          "f": {
+            "IP": "192.168.20.20",
+            "port": "Zephyrus p3 · 2.5G"
+          },
+          "s": "ok",
+          "live": {
+            "pve": "node01"
+          }
+        },
+        {
+          "id": "n2",
+          "g": "hosts",
+          "t": "node",
+          "n": "node02",
+          "f": {
+            "IP": "192.168.20.21",
+            "port": "Zephyrus p4 · 2.5G"
+          },
+          "s": "ok",
+          "live": {
+            "pve": "node02"
+          }
+        },
+        {
+          "id": "n3",
+          "g": "hosts",
+          "t": "node",
+          "n": "node03 · Atreus PC",
+          "f": {
+            "IP": "192.168.20.22",
+            "port": "Zephyrus p5 · 2.5G"
+          },
+          "s": "ok",
+          "live": {
+            "pve": "node03"
+          }
+        },
+        {
+          "id": "kpc",
+          "g": "hosts",
+          "t": "device",
+          "n": "Kratos PC",
+          "f": {
+            "IP": "192.168.10.10",
+            "port": "Zephyrus p2 · 2.5G"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "z6",
+          "g": "hosts",
+          "t": "device",
+          "n": "Zephyrus port 6",
+          "f": {
+            "link": "2.5G · VLAN 20",
+            "label": "none in Omada"
+          },
+          "s": "off",
+          "note": "Unlabelled: name it in Omada"
+        },
+        {
+          "id": "opn2",
+          "g": "rack",
+          "t": "dns",
+          "n": "homelab-dns01 · Technitium",
+          "f": {
+            "port": "Morpheus p6",
+            "VLAN": "90",
+            "IP": "192.168.90.60 (static)"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "kvm1",
+          "g": "rack",
+          "t": "device",
+          "n": "GL.iNet KVM · Internal",
+          "f": {
+            "port": "Morpheus p7",
+            "IP": "192.168.10.54"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "kvm2",
+          "g": "rack",
+          "t": "device",
+          "n": "GL.iNet KVM · Homelab",
+          "f": {
+            "port": "Morpheus p8",
+            "IP": "192.168.20.53"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "nas2",
+          "g": "nasg",
+          "t": "storage",
+          "n": "Synology · Callimachus",
+          "f": {
+            "ports": "Core p6 · p7 (1G)",
+            "internal": "192.168.10.31",
+            "storage": "192.168.20.32"
+          },
+          "s": "ok",
+          "note": "Never use 192.168.20.31 (dead NIC)"
+        },
+        {
+          "id": "pih",
+          "g": "dns",
+          "t": "dns",
+          "n": "Pi-hole + Unbound (secondary)",
+          "f": {
+            "IP": "192.168.90.53",
+            "host": "CT202 · node01"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 202,
+            "base": {
+              "name": "pihole",
+              "node": "node01",
+              "ip": "192.168.90.53",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "ts2",
+          "g": "dns",
+          "t": "cloud",
+          "n": "Tailscale",
+          "f": {
+            "router": "node01",
+            "routes": "20 · 40 · 90",
+            "DNS": "split → .60 + .53"
+          }
+        },
+        {
+          "id": "cf2",
+          "g": "dns",
+          "t": "cloud",
+          "n": "Cloudflare DNS",
+          "f": {
+            "zone": "hrmsmrflrii.xyz",
+            "registrar": "GoDaddy"
+          }
+        },
+        {
+          "id": "v1",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 1 · Default",
+          "f": {
+            "subnet": "192.168.0.0/24",
+            "DHCP": ".100–.199",
+            "use": "controller · temp mgmt",
+            "DNS": "Pi-hole only"
+          },
+          "more": {
+            "gateway": "192.168.0.1",
+            "clients": "1 (OC300)"
+          }
+        },
+        {
+          "id": "v10",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 10 · Internal",
+          "f": {
+            "subnet": "192.168.10.0/24",
+            "DHCP": ".50–.254",
+            "DNS": "Technitium + Pi-hole"
+          },
+          "more": {
+            "gateway": "192.168.10.1",
+            "clients": "6 · PCs, phone, Mac, KVM",
+            "use": "main LAN"
+          }
+        },
+        {
+          "id": "v20",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 20 · Homelab",
+          "f": {
+            "subnet": "192.168.20.0/24",
+            "DHCP": ".50–.254",
+            "use": "Proxmox, NAS, PBS"
+          },
+          "more": {
+            "gateway": "192.168.20.1",
+            "DNS": "Technitium + Pi-hole",
+            "clients": "7",
+            "free_pool": ".36–.49 (IPAM)"
+          }
+        },
+        {
+          "id": "v30",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 30 · IoT",
+          "f": {
+            "subnet": "192.168.30.0/24",
+            "DHCP": ".50–.254",
+            "use": "plugs, bulbs, cams"
+          },
+          "more": {
+            "gateway": "192.168.30.1",
+            "DNS": "Technitium + Pi-hole",
+            "clients": "11 (Wi-Fi)"
+          }
+        },
+        {
+          "id": "v40",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 40 · Production",
+          "f": {
+            "subnet": "192.168.40.0/24",
+            "DHCP": ".50–.254",
+            "DNS": "Technitium + Pi-hole"
+          },
+          "more": {
+            "gateway": "192.168.40.1",
+            "clients": "16 · VMs & LXCs",
+            "free_pool": ".36–.49 (IPAM)"
+          }
+        },
+        {
+          "id": "v50",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 50 · Guest",
+          "f": {
+            "subnet": "192.168.50.0/24",
+            "DHCP": ".50–.254",
+            "DNS": "Technitium + Pi-hole"
+          },
+          "more": {
+            "gateway": "192.168.50.1",
+            "clients": "0"
+          }
+        },
+        {
+          "id": "v80",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 80 · HyperV",
+          "f": {
+            "subnet": "192.168.80.0/24",
+            "DNS": "Technitium + Pi-hole"
+          },
+          "more": {
+            "gateway": "192.168.80.1",
+            "clients": "0"
+          }
+        },
+        {
+          "id": "v90",
+          "g": "vlans",
+          "t": "vlan",
+          "n": "VLAN 90 · Management",
+          "f": {
+            "subnet": "192.168.90.0/24",
+            "DHCP": ".50–.254",
+            "use": "switches, APs, DNS"
+          },
+          "more": {
+            "gateway": "192.168.90.1",
+            "DNS": "Technitium + Pi-hole",
+            "free_pool": ".36–.49 (IPAM)"
+          }
+        },
+        {
+          "id": "nn1",
+          "g": "nnotes",
+          "t": "note",
+          "n": "Firewalling",
+          "f": null,
+          "detail": true,
+          "text": "Inter-VLAN ACLs live on the ER605 and are owned by Torrent. All of them were switched off on 2026-10-16 after phase 4 blocked Omada management and some DNS, so traffic between VLANs is unfiltered. Check the live rule order before turning them back on."
+        },
+        {
+          "id": "nn2",
+          "g": "nnotes",
+          "t": "note",
+          "n": "DNS",
+          "f": null,
+          "detail": true,
+          "text": "Since 18 Oct 2026: DHCP hands out Technitium 192.168.90.60 (homelab-dns01, primary: recursive, DNSSEC, blocklists) then Pi-hole 192.168.90.53 (CT202, secondary). Proxmox nodes, LXCs and VMs use the same pair. Local names live in Technitium; Torrent copies them to Pi-hole daily (dns-sync). VLAN 1 still gets Pi-hole only.\nPlanned: replace Pi-hole with a second Technitium and cluster the two."
+        },
+        {
+          "id": "nn3",
+          "g": "nnotes",
+          "t": "note",
+          "n": "About this map",
+          "f": null,
+          "detail": true,
+          "text": "Links and port names come from Omada (18 Oct 2026). Links marked \"docs\" come from older notes and were not confirmed live. Client counts are a snapshot from the same day."
+        }
+      ],
+      "edges": [
+        [
+          "inet",
+          "ont",
+          "fiber",
+          "link"
+        ],
+        [
+          "ont",
+          "er",
+          "WAN",
+          "link"
+        ],
+        [
+          "er",
+          "atreus",
+          "Atreus p5 (docs)",
+          "link"
+        ],
+        [
+          "atreus",
+          "coresw",
+          "→ Core p8",
+          "link"
+        ],
+        [
+          "coresw",
+          "oc300",
+          "p1",
+          "link"
+        ],
+        [
+          "coresw",
+          "zeph",
+          "p2 → p1",
+          "link"
+        ],
+        [
+          "coresw",
+          "morph",
+          "p3 → p1",
+          "link"
+        ],
+        [
+          "coresw",
+          "nas2",
+          "p6 · p7",
+          "link"
+        ],
+        [
+          "zeph",
+          "hosts",
+          "p2–p6 · 2.5G",
+          "link"
+        ],
+        [
+          "morph",
+          "opn2",
+          "p6 · 1G",
+          "link"
+        ],
+        [
+          "morph",
+          "kvm1",
+          "p7",
+          "link"
+        ],
+        [
+          "morph",
+          "kvm2",
+          "p8",
+          "link"
+        ],
+        [
+          "atreus",
+          "eap1",
+          "PoE (docs)",
+          "link"
+        ],
+        [
+          "eap1",
+          "eap3",
+          "mesh",
+          "link"
+        ],
+        [
+          "oc300",
+          "sw",
+          "manages",
+          "mgmt"
+        ],
+        [
+          "oc300",
+          "wifi",
+          "manages",
+          "mgmt"
+        ],
+        [
+          "er",
+          "vlans",
+          "gateway · DHCP",
+          "route"
+        ],
+        [
+          "pih",
+          "vlans",
+          "DNS",
+          "dep"
+        ],
+        [
+          "ts2",
+          "n1",
+          "subnet router",
+          "route"
+        ],
+        [
+          "opn2",
+          "pih",
+          "primary → secondary (records synced)",
+          "data"
+        ]
+      ]
+    },
+    {
+      "id": "svc",
+      "title": "Services",
+      "blurb": "What runs where: containers and services per host, with ports",
+      "groups": [
+        {
+          "id": "edge",
+          "label": "Edge & DNS",
+          "c": "#a78bfa",
+          "cols": 2
+        },
+        {
+          "id": "mon",
+          "label": "Core Utilities · Monitoring",
+          "c": "#f472b6",
+          "cols": 3,
+          "desc": "docker-vm-core-utilities01 · 192.168.40.13 · VM107 node01"
+        },
+        {
+          "id": "apps",
+          "label": "Core Utilities · Apps",
+          "c": "#34d399",
+          "cols": 3,
+          "desc": "same host · 192.168.40.13"
+        },
+        {
+          "id": "apis",
+          "label": "Core Utilities · Lab APIs & Bots",
+          "c": "#22d3ee",
+          "cols": 2,
+          "desc": "same host · 192.168.40.13"
+        },
+        {
+          "id": "media",
+          "label": "Media · docker-lxc-media",
+          "c": "#f59e0b",
+          "cols": 4,
+          "desc": "CT205 · 192.168.40.11 · node01"
+        },
+        {
+          "id": "dash",
+          "label": "Dashboards",
+          "c": "#60a5fa",
+          "cols": 2,
+          "desc": "CT200 192.168.40.12 · CT209 192.168.40.27"
+        },
+        {
+          "id": "rt",
+          "label": "Roundtable · codex-agent-lxc",
+          "c": "#fb923c",
+          "cols": 2,
+          "desc": "CT211 · 192.168.40.16 · node01"
+        },
+        {
+          "id": "solo",
+          "label": "Standalone VMs & LXCs",
+          "c": "#94a3b8",
+          "cols": 3
+        },
+        {
+          "id": "snotes",
+          "label": "Notes",
+          "c": "#facc15",
+          "cols": 3,
+          "detail": true
+        }
+      ],
+      "layout": [
+        [
+          "edge",
+          "mon",
+          "apps"
+        ],
+        [
+          "apis",
+          "media",
+          "dash"
+        ],
+        [
+          "rt",
+          "solo"
+        ],
+        [
+          "snotes"
+        ]
+      ],
+      "nodes": [
+        {
+          "id": "cf",
+          "g": "edge",
+          "t": "cloud",
+          "n": "Cloudflare",
+          "f": {
+            "role": "public DNS · TLS"
+          }
+        },
+        {
+          "id": "traefik",
+          "g": "edge",
+          "t": "lxc",
+          "n": "Traefik",
+          "f": {
+            "host": "CT203",
+            "at": "192.168.40.20"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 203,
+            "base": {
+              "name": "traefik-lxc",
+              "node": "node01",
+              "ip": "192.168.40.20",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "authentik",
+          "g": "edge",
+          "t": "security",
+          "n": "Authentik",
+          "f": {
+            "host": "CT204 · node02",
+            "at": "192.168.40.21"
+          },
+          "s": "ok",
+          "icon": "key",
+          "live": {
+            "guest": 204,
+            "base": {
+              "name": "authentik-lxc",
+              "node": "node02",
+              "ip": "192.168.40.21",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "technitium",
+          "g": "edge",
+          "t": "dns",
+          "n": "Technitium (primary DNS)",
+          "f": {
+            "host": "homelab-dns01",
+            "at": "192.168.90.60"
+          }
+        },
+        {
+          "id": "pihole",
+          "g": "edge",
+          "t": "dns",
+          "n": "Pi-hole (secondary DNS)",
+          "f": {
+            "host": "CT202",
+            "at": "192.168.90.53"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 202,
+            "base": {
+              "name": "pihole",
+              "node": "node01",
+              "ip": "192.168.90.53",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "prometheus",
+          "g": "mon",
+          "t": "container",
+          "n": "prometheus",
+          "f": {
+            "port": "9090"
+          },
+          "s": "ok",
+          "sub": "Metrics",
+          "live": {
+            "containers": [
+              "prometheus"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "grafana",
+          "g": "mon",
+          "t": "container",
+          "n": "grafana",
+          "f": {
+            "port": "3030"
+          },
+          "s": "ok",
+          "sub": "Dashboards",
+          "live": {
+            "containers": [
+              "grafana"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "loki",
+          "g": "mon",
+          "t": "container",
+          "n": "loki",
+          "f": {
+            "port": "3100"
+          },
+          "s": "ok",
+          "sub": "Logs",
+          "live": {
+            "containers": [
+              "loki"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "alloy",
+          "g": "mon",
+          "t": "container",
+          "n": "alloy",
+          "f": {
+            "port": "12345 (local)",
+            "on": "every Docker host"
+          },
+          "s": "ok",
+          "sub": "Log/metric agent",
+          "live": {
+            "containers": [
+              "alloy"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "kuma",
+          "g": "mon",
+          "t": "container",
+          "n": "uptime-kuma",
+          "f": {
+            "port": "3001"
+          },
+          "s": "ok",
+          "sub": "Uptime checks",
+          "live": {
+            "containers": [
+              "uptime-kuma"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "jaeger",
+          "g": "mon",
+          "t": "container",
+          "n": "jaeger",
+          "f": {
+            "UI": "16686",
+            "OTLP": "4317-4318"
+          },
+          "s": "ok",
+          "sub": "Tracing",
+          "live": {
+            "containers": [
+              "jaeger"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "cadvisor",
+          "g": "mon",
+          "t": "container",
+          "n": "cadvisor",
+          "f": {
+            "port": "8081"
+          },
+          "s": "ok",
+          "sub": "Container metrics",
+          "live": {
+            "containers": [
+              "cadvisor"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "snmp",
+          "g": "mon",
+          "t": "container",
+          "n": "snmp-exporter",
+          "f": {
+            "port": "9116",
+            "target": "NAS 192.168.20.32"
+          },
+          "s": "ok",
+          "sub": "Exporter",
+          "live": {
+            "containers": [
+              "snmp-exporter"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "pvex",
+          "g": "mon",
+          "t": "container",
+          "n": "pve-exporter",
+          "f": {
+            "port": "9221"
+          },
+          "s": "ok",
+          "sub": "Exporter",
+          "live": {
+            "containers": [
+              "pve-exporter"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "pbsx",
+          "g": "mon",
+          "t": "container",
+          "n": "pbs-exporter",
+          "f": {
+            "port": "9101"
+          },
+          "s": "ok",
+          "sub": "Exporter",
+          "live": {
+            "containers": [
+              "pbs-exporter"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "n8n",
+          "g": "apps",
+          "t": "container",
+          "n": "n8n",
+          "f": {
+            "port": "5678"
+          },
+          "s": "ok",
+          "sub": "Automation",
+          "live": {
+            "containers": [
+              "n8n"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "paperless",
+          "g": "apps",
+          "t": "container",
+          "n": "paperless",
+          "f": {
+            "port": "8000",
+            "with": "redis"
+          },
+          "s": "ok",
+          "sub": "Documents",
+          "live": {
+            "containers": [
+              "paperless"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "karakeep",
+          "g": "apps",
+          "t": "container",
+          "n": "karakeep",
+          "f": {
+            "port": "3005",
+            "with": "meilisearch · chrome"
+          },
+          "s": "ok",
+          "sub": "AI bookmarks",
+          "live": {
+            "containers": [
+              "karakeep"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "wizarr",
+          "g": "apps",
+          "t": "container",
+          "n": "wizarr",
+          "f": {
+            "port": "5690"
+          },
+          "s": "ok",
+          "sub": "Media invites",
+          "live": {
+            "containers": [
+              "wizarr"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "tracearr",
+          "g": "apps",
+          "t": "container",
+          "n": "tracearr",
+          "f": {
+            "port": "3002"
+          },
+          "s": "ok",
+          "sub": "Media tracking",
+          "live": {
+            "containers": [
+              "tracearr"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "chron",
+          "g": "apps",
+          "t": "container",
+          "n": "homelab-chronicle",
+          "f": {
+            "port": "3010"
+          },
+          "s": "ok",
+          "sub": "Changelog app",
+          "live": {
+            "containers": [
+              "homelab-chronicle"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "speed",
+          "g": "apps",
+          "t": "container",
+          "n": "speedtest-tracker",
+          "f": {
+            "port": "3000"
+          },
+          "s": "ok",
+          "sub": "Internet speed",
+          "live": {
+            "containers": [
+              "speedtest-tracker"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "vlanflow",
+          "g": "apps",
+          "t": "service",
+          "n": "VLAN Flow",
+          "f": {
+            "port": "8787 · syslog 5514"
+          },
+          "s": "ok",
+          "sub": "Native service"
+        },
+        {
+          "id": "sentinel",
+          "g": "apis",
+          "t": "container",
+          "n": "sentinel-bot",
+          "f": {
+            "port": "5050",
+            "cogs": "8"
+          },
+          "s": "ok",
+          "sub": "Discord bot",
+          "live": {
+            "containers": [
+              "sentinel-bot"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "svm",
+          "g": "apis",
+          "t": "container",
+          "n": "service-version-api",
+          "f": {
+            "port": "5070"
+          },
+          "s": "warn",
+          "sub": "Service Version Manager",
+          "note": "Rotate key · /api/summary bug",
+          "live": {
+            "containers": [
+              "service-version-api"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "nasapi",
+          "g": "apis",
+          "t": "container",
+          "n": "nas-backup-status-api",
+          "f": {
+            "port": "9102"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "nas-backup-status-api"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "life",
+          "g": "apis",
+          "t": "container",
+          "n": "life-progress",
+          "f": {
+            "port": "5051"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "life-progress"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "steam",
+          "g": "apis",
+          "t": "container",
+          "n": "steam-stats",
+          "f": {
+            "port": "5055"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "steam-stats"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "gpc",
+          "g": "apis",
+          "t": "container",
+          "n": "gaming-pc-stats",
+          "f": {
+            "port": "5056"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "gaming-pc-stats"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "power",
+          "g": "apis",
+          "t": "container",
+          "n": "power-control-api",
+          "f": {
+            "port": "5057"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "power-control-api"
+            ],
+            "host": "docker-vm-core-utilities01",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "jellyfin",
+          "g": "media",
+          "t": "container",
+          "n": "jellyfin",
+          "f": {
+            "port": "8096"
+          },
+          "s": "ok",
+          "sub": "Media server",
+          "live": {
+            "containers": [
+              "jellyfin"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "jellyseerr",
+          "g": "media",
+          "t": "container",
+          "n": "jellyseerr",
+          "f": {
+            "port": "5056"
+          },
+          "s": "ok",
+          "sub": "Requests",
+          "live": {
+            "containers": [
+              "jellyseerr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "overseerr",
+          "g": "media",
+          "t": "container",
+          "n": "overseerr",
+          "f": {
+            "port": "5055"
+          },
+          "s": "ok",
+          "sub": "Requests",
+          "live": {
+            "containers": [
+              "overseerr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "sonarr",
+          "g": "media",
+          "t": "container",
+          "n": "sonarr",
+          "f": {
+            "port": "8989"
+          },
+          "s": "ok",
+          "sub": "TV",
+          "live": {
+            "containers": [
+              "sonarr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "radarr",
+          "g": "media",
+          "t": "container",
+          "n": "radarr",
+          "f": {
+            "port": "7878"
+          },
+          "s": "ok",
+          "sub": "Movies",
+          "live": {
+            "containers": [
+              "radarr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "lidarr",
+          "g": "media",
+          "t": "container",
+          "n": "lidarr",
+          "f": {
+            "port": "8686"
+          },
+          "s": "ok",
+          "sub": "Music",
+          "live": {
+            "containers": [
+              "lidarr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "bazarr",
+          "g": "media",
+          "t": "container",
+          "n": "bazarr",
+          "f": {
+            "port": "6767"
+          },
+          "s": "ok",
+          "sub": "Subtitles",
+          "live": {
+            "containers": [
+              "bazarr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "prowlarr",
+          "g": "media",
+          "t": "container",
+          "n": "prowlarr",
+          "f": {
+            "port": "9696"
+          },
+          "s": "ok",
+          "sub": "Indexers",
+          "live": {
+            "containers": [
+              "prowlarr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "flare",
+          "g": "media",
+          "t": "container",
+          "n": "flaresolverr",
+          "f": {
+            "port": "8191"
+          },
+          "s": "ok",
+          "sub": "Indexer helper",
+          "live": {
+            "containers": [
+              "flaresolverr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "deluge",
+          "g": "media",
+          "t": "container",
+          "n": "deluge",
+          "f": {
+            "port": "8112"
+          },
+          "s": "ok",
+          "sub": "Torrent client",
+          "live": {
+            "containers": [
+              "deluge"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "sab",
+          "g": "media",
+          "t": "container",
+          "n": "sabnzbd",
+          "f": {
+            "port": "8081"
+          },
+          "s": "off",
+          "sub": "Usenet client",
+          "note": "Disabled: Usenet provider expired",
+          "live": {
+            "containers": [
+              "sabnzbd"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "autobrr",
+          "g": "media",
+          "t": "container",
+          "n": "autobrr",
+          "f": {
+            "port": "7474"
+          },
+          "s": "ok",
+          "sub": "Release grabber",
+          "live": {
+            "containers": [
+              "autobrr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "tdarr",
+          "g": "media",
+          "t": "container",
+          "n": "tdarr",
+          "f": {
+            "port": "8265-8266"
+          },
+          "s": "ok",
+          "sub": "Transcoding",
+          "live": {
+            "containers": [
+              "tdarr"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "metube",
+          "g": "media",
+          "t": "container",
+          "n": "metube",
+          "f": {
+            "port": "8082"
+          },
+          "s": "ok",
+          "sub": "YouTube downloads",
+          "live": {
+            "containers": [
+              "metube"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "dexp",
+          "g": "media",
+          "t": "container",
+          "n": "docker-exporter",
+          "f": {
+            "port": "9417"
+          },
+          "s": "ok",
+          "sub": "Exporter",
+          "live": {
+            "containers": [
+              "docker-exporter"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "cad2",
+          "g": "media",
+          "t": "container",
+          "n": "cadvisor",
+          "f": {
+            "port": "8083"
+          },
+          "s": "ok",
+          "sub": "Container metrics",
+          "live": {
+            "containers": [
+              "cadvisor"
+            ],
+            "host": "docker-lxc-media",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "glance",
+          "g": "dash",
+          "t": "container",
+          "n": "glance",
+          "f": {
+            "port": "8080",
+            "URL": "glance.hrmsmrflrii.xyz"
+          },
+          "s": "ok",
+          "sub": "Dashboard",
+          "live": {
+            "containers": [
+              "glance"
+            ],
+            "host": "docker-lxc-glance",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "phstats",
+          "g": "dash",
+          "t": "container",
+          "n": "pihole-stats-api",
+          "f": {
+            "port": "5055"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "pihole-stats-api"
+            ],
+            "host": "docker-lxc-glance",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "pnodes",
+          "g": "dash",
+          "t": "container",
+          "n": "proxmox-nodes-api",
+          "f": {
+            "port": "5061"
+          },
+          "s": "ok",
+          "sub": "Lab API",
+          "live": {
+            "containers": [
+              "proxmox-nodes-api"
+            ],
+            "host": "docker-lxc-glance",
+            "base": {
+              "state": "running"
+            }
+          }
+        },
+        {
+          "id": "homepage",
+          "g": "dash",
+          "t": "lxc",
+          "n": "Homepage",
+          "f": {
+            "host": "CT209",
+            "port": "3000"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 209,
+            "base": {
+              "name": "homepage-lxc",
+              "node": "node01",
+              "ip": "192.168.40.27",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "portal",
+          "g": "rt",
+          "t": "service",
+          "n": "olympus-portal",
+          "f": {
+            "port": "8088",
+            "URL": "roundtable.hrmsmrflrii.xyz"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "olympus-portal"
+          }
+        },
+        {
+          "id": "boss",
+          "g": "rt",
+          "t": "service",
+          "n": "boss",
+          "f": {
+            "role": "chat · approvals · digest"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "boss"
+          }
+        },
+        {
+          "id": "labfeed",
+          "g": "rt",
+          "t": "service",
+          "n": "labfeed",
+          "f": {
+            "port": "8790",
+            "role": "lab JSON for Glance"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "labfeed"
+          }
+        },
+        {
+          "id": "sre",
+          "g": "rt",
+          "t": "service",
+          "n": "sre-agent",
+          "f": {
+            "role": "patch pipeline"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "sre-agent"
+          }
+        },
+        {
+          "id": "timers",
+          "g": "rt",
+          "t": "timer",
+          "n": "systemd timers",
+          "f": {
+            "runs": "agent schedules",
+            "e_g": "glance-check :05/:35"
+          }
+        },
+        {
+          "id": "blog",
+          "g": "rt",
+          "t": "service",
+          "n": "blog-studio",
+          "f": {
+            "role": "Codex blog writer"
+          }
+        },
+        {
+          "id": "immich",
+          "g": "solo",
+          "t": "vm",
+          "n": "Immich",
+          "f": {
+            "host": "VM108 · node03",
+            "at": "192.168.40.22:2283"
+          },
+          "s": "ok",
+          "icon": "media",
+          "live": {
+            "guest": 108,
+            "base": {
+              "name": "immich-vm01",
+              "node": "node03",
+              "ip": "192.168.40.22",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "gitlab",
+          "g": "solo",
+          "t": "vm",
+          "n": "GitLab CE",
+          "f": {
+            "host": "VM106 · node03",
+            "at": "192.168.40.23"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 106,
+            "base": {
+              "name": "gitlab-vm01",
+              "node": "node03",
+              "ip": "192.168.40.23",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "runner",
+          "g": "solo",
+          "t": "vm",
+          "n": "GitLab Runner",
+          "f": {
+            "host": "VM121 · node02",
+            "at": "192.168.40.24"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 121,
+            "base": {
+              "name": "gitlab-runner-vm01",
+              "node": "node02",
+              "ip": "192.168.40.24",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "ha",
+          "g": "solo",
+          "t": "lxc",
+          "n": "Home Assistant",
+          "f": {
+            "host": "CT206",
+            "at": "192.168.40.25"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 206,
+            "base": {
+              "name": "homeassistant-lxc",
+              "node": "node01",
+              "ip": "192.168.40.25",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "chronlxc",
+          "g": "solo",
+          "t": "lxc",
+          "n": "Chronicle",
+          "f": {
+            "host": "CT207 · node02",
+            "at": "192.168.40.15"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 207,
+            "base": {
+              "name": "chronicle-lxc",
+              "node": "node02",
+              "ip": "192.168.40.15",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "helios",
+          "g": "solo",
+          "t": "lxc",
+          "n": "Helios",
+          "f": {
+            "host": "CT210",
+            "at": "192.168.40.14"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 210,
+            "base": {
+              "name": "helios-lxc",
+              "node": "node01",
+              "ip": "192.168.40.14",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "study",
+          "g": "solo",
+          "t": "lxc",
+          "n": "Study notebook",
+          "f": {
+            "host": "CT212 · node02",
+            "at": "192.168.40.38:8090"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 212,
+            "base": {
+              "name": "study-lxc",
+              "node": "node02",
+              "ip": "192.168.40.38",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "openbao",
+          "g": "solo",
+          "t": "lxc",
+          "n": "OpenBao secrets",
+          "f": {
+            "host": "CT213 · node02",
+            "at": "192.168.40.39:8200"
+          },
+          "s": "ok",
+          "icon": "db",
+          "live": {
+            "guest": 213,
+            "base": {
+              "name": "openbao-lxc",
+              "node": "node02",
+              "ip": "192.168.40.39",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "pbs",
+          "g": "solo",
+          "t": "lxc",
+          "n": "PBS",
+          "f": {
+            "host": "CT100 · node03",
+            "at": "192.168.20.50:8007"
+          },
+          "s": "ok",
+          "icon": "db",
+          "live": {
+            "guest": 100,
+            "base": {
+              "name": "pbs-server",
+              "node": "node03",
+              "ip": "192.168.20.50",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "ans",
+          "g": "solo",
+          "t": "vm",
+          "n": "ansible-controller01",
+          "f": {
+            "host": "VM103",
+            "at": "192.168.20.30",
+            "runs": "Omada exporter"
+          },
+          "s": "ok",
+          "live": {
+            "guest": 103,
+            "base": {
+              "name": "ansible-controller01",
+              "node": "node01",
+              "ip": "192.168.20.30",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "bots",
+          "g": "solo",
+          "t": "lxc",
+          "n": "docker-lxc-bots",
+          "f": {
+            "host": "CT201",
+            "at": "192.168.40.17"
+          },
+          "s": "off",
+          "note": "Idle: no containers",
+          "live": {
+            "guest": 201,
+            "base": {
+              "name": "docker-lxc-bots",
+              "node": "node01",
+              "ip": "192.168.40.17",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "h13",
+          "g": "mon",
+          "t": "vm",
+          "n": "Host · docker-vm-core-utilities01",
+          "f": {
+            "VM": "107 · node01",
+            "size": "4 vCPU · 24 GiB · 140 GB",
+            "IP": "192.168.40.13"
+          },
+          "detail": true,
+          "sub": "Docker host (all 3 Core Utilities groups)",
+          "live": {
+            "guest": 107,
+            "base": {
+              "name": "docker-vm-core-utilities01",
+              "node": "node01",
+              "ip": "192.168.40.13",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "h11",
+          "g": "media",
+          "t": "lxc",
+          "n": "Host · docker-lxc-media",
+          "f": {
+            "CT": "205 · node01",
+            "size": "4 vCPU · 8 GiB · 49 GB",
+            "library": "NAS Proxmox-Media"
+          },
+          "detail": true,
+          "sub": "Docker host",
+          "live": {
+            "guest": 205,
+            "base": {
+              "name": "docker-lxc-media",
+              "node": "node01",
+              "ip": "192.168.40.11",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "h12",
+          "g": "dash",
+          "t": "lxc",
+          "n": "Host · docker-lxc-glance",
+          "f": {
+            "CT": "200 · node01",
+            "size": "2 vCPU · 4 GiB · 20 GB"
+          },
+          "detail": true,
+          "sub": "Docker host",
+          "live": {
+            "guest": 200,
+            "base": {
+              "name": "docker-lxc-glance",
+              "node": "node01",
+              "ip": "192.168.40.12",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "h16",
+          "g": "rt",
+          "t": "lxc",
+          "n": "Host · codex-agent-lxc",
+          "f": {
+            "CT": "211 · node01",
+            "size": "4 vCPU · 4 GiB · 16 GB",
+            "type": "unprivileged"
+          },
+          "detail": true,
+          "sub": "Agent runner",
+          "live": {
+            "guest": 211,
+            "base": {
+              "name": "codex-agent-lxc",
+              "node": "node01",
+              "ip": "192.168.40.16",
+              "status": "running"
+            }
+          }
+        },
+        {
+          "id": "sn1",
+          "g": "snotes",
+          "t": "note",
+          "n": "Media flow",
+          "f": null,
+          "detail": true,
+          "text": "Jellyseerr/Overseerr request → Sonarr (TV) or Radarr (movies) → Prowlarr searches the indexers (FlareSolverr for captchas) → Deluge downloads → library on the NAS (Proxmox-Media) → Jellyfin. Bazarr adds subtitles, Tdarr transcodes. Nepheli watches the stack every 10 min."
+        },
+        {
+          "id": "sn2",
+          "g": "snotes",
+          "t": "note",
+          "n": "Updates",
+          "f": null,
+          "detail": true,
+          "text": "Watchtower checks images and asks for a Discord approval. The Service Version Manager (:5070) tracks versions; Glance's Update button now files a Roundtable approval instead of calling it directly."
+        },
+        {
+          "id": "sn3",
+          "g": "snotes",
+          "t": "note",
+          "n": "Access",
+          "f": null,
+          "detail": true,
+          "text": "Ports shown are on the host IP. People reach services through Traefik + Authentik at *.hrmsmrflrii.xyz; raw ports are for the LAN and the agents."
+        }
+      ],
+      "edges": [
+        [
+          "cf",
+          "traefik",
+          "public names",
+          "route"
+        ],
+        [
+          "traefik",
+          "authentik",
+          "ForwardAuth",
+          "dep"
+        ],
+        [
+          "traefik",
+          "jaeger",
+          "traces",
+          "dep"
+        ],
+        [
+          "traefik",
+          "media",
+          "jellyfin · arr",
+          "route"
+        ],
+        [
+          "traefik",
+          "solo",
+          "immich · gitlab · HA",
+          "route"
+        ],
+        [
+          "traefik",
+          "portal",
+          "roundtable",
+          "route"
+        ],
+        [
+          "traefik",
+          "glance",
+          "glance",
+          "route"
+        ],
+        [
+          "grafana",
+          "prometheus",
+          "queries",
+          "dep"
+        ],
+        [
+          "grafana",
+          "loki",
+          "queries",
+          "dep"
+        ],
+        [
+          "prometheus",
+          "pvex",
+          "scrapes",
+          "dep"
+        ],
+        [
+          "prometheus",
+          "snmp",
+          "scrapes",
+          "dep"
+        ],
+        [
+          "prometheus",
+          "pbsx",
+          "scrapes",
+          "dep"
+        ],
+        [
+          "prometheus",
+          "ans",
+          "Omada exporter",
+          "dep"
+        ],
+        [
+          "alloy",
+          "loki",
+          "logs",
+          "dep"
+        ],
+        [
+          "jellyseerr",
+          "sonarr",
+          "requests",
+          "dep"
+        ],
+        [
+          "jellyseerr",
+          "radarr",
+          "requests",
+          "dep"
+        ],
+        [
+          "sonarr",
+          "prowlarr",
+          "search",
+          "dep"
+        ],
+        [
+          "radarr",
+          "prowlarr",
+          "search",
+          "dep"
+        ],
+        [
+          "prowlarr",
+          "flare",
+          "captcha",
+          "dep"
+        ],
+        [
+          "sonarr",
+          "deluge",
+          "download",
+          "dep"
+        ],
+        [
+          "radarr",
+          "deluge",
+          "download",
+          "dep"
+        ],
+        [
+          "bazarr",
+          "radarr",
+          "subtitles",
+          "dep"
+        ],
+        [
+          "glance",
+          "labfeed",
+          "reads",
+          "dep"
+        ],
+        [
+          "labfeed",
+          "prometheus",
+          "reads",
+          "dep"
+        ],
+        [
+          "labfeed",
+          "svm",
+          "reads",
+          "dep"
+        ],
+        [
+          "labfeed",
+          "nasapi",
+          "reads",
+          "dep"
+        ],
+        [
+          "phstats",
+          "pihole",
+          "reads",
+          "dep"
+        ],
+        [
+          "sre",
+          "gitlab",
+          "issues",
+          "dep"
+        ],
+        [
+          "boss",
+          "openbao",
+          "scoped secrets (Varys)",
+          "data"
+        ],
+        [
+          "prometheus",
+          "openbao",
+          "metrics",
+          "report"
+        ]
+      ]
+    },
+    {
+      "id": "agents",
+      "title": "Agents",
+      "blurb": "Roundtable: 32 agents, who reports to whom, and the platform they run on",
+      "groups": [
+        {
+          "id": "owner",
+          "label": "Owner & Chief of Staff",
+          "c": "#cbd5e1",
+          "cols": 2
+        },
+        {
+          "id": "exec",
+          "label": "Executive",
+          "c": "#fb923c",
+          "cols": 1
+        },
+        {
+          "id": "gov",
+          "label": "Governance · led by Ranni",
+          "c": "#a78bfa",
+          "cols": 3,
+          "desc": "ITSM, compliance, FinOps, delivery and documentation"
+        },
+        {
+          "id": "sec",
+          "label": "Security · led by Loretta",
+          "c": "#f87171",
+          "cols": 1
+        },
+        {
+          "id": "ops",
+          "label": "ITOps & SRE · led by Corhyn",
+          "c": "#4f8cff",
+          "cols": 3,
+          "desc": "Infrastructure, network, backups, media, builds"
+        },
+        {
+          "id": "plat",
+          "label": "Platform · CT211",
+          "c": "#fbbf24",
+          "cols": 2,
+          "desc": "codex-agent-lxc · 192.168.40.16"
+        },
+        {
+          "id": "integ",
+          "label": "Integrations",
+          "c": "#94a3b8",
+          "cols": 2
+        },
+        {
+          "id": "gnotes",
+          "label": "Notes",
+          "c": "#facc15",
+          "cols": 3,
+          "detail": true
+        }
+      ],
+      "layout": [
+        [
+          "owner",
+          "exec",
+          "sec"
+        ],
+        [
+          "gov",
+          "ops"
+        ],
+        [],
+        [
+          "plat",
+          "integ"
+        ],
+        [
+          "gnotes"
+        ]
+      ],
+      "nodes": [
+        {
+          "id": "hermes",
+          "g": "owner",
+          "t": "person",
+          "n": "Hermes",
+          "f": {
+            "role": "owner",
+            "approves": "✅ Discord · GitLab label"
+          }
+        },
+        {
+          "id": "boss",
+          "g": "exec",
+          "t": "agent",
+          "n": "Gideon",
+          "f": {
+            "role": "COO & Enterprise Architect",
+            "model": "gpt-6-luna",
+            "channel": "#roundtable-hold",
+            "runs": "boss.service"
+          },
+          "more": {
+            "schedule": "Always on · chat 5 s · approvals 15 s · digest 21:00"
+          },
+          "live": {
+            "agent": "boss",
+            "base": {
+              "name": "Gideon",
+              "model": "gpt-6-luna",
+              "channel": "roundtable-hold",
+              "reports_to": "hermes"
+            }
+          }
+        },
+        {
+          "id": "governance",
+          "g": "gov",
+          "t": "agent",
+          "n": "Ranni",
+          "f": {
+            "role": "Governance lead · ITSM",
+            "model": "gpt-6-luna",
+            "channel": "#roundtable-hold"
+          },
+          "more": {
+            "schedule": "Audit sync every 5 min"
+          },
+          "live": {
+            "agent": "governance",
+            "base": {
+              "name": "Ranni",
+              "model": "gpt-6-luna",
+              "channel": "roundtable-hold",
+              "reports_to": "boss"
+            }
+          }
+        },
+        {
+          "id": "project_manager",
+          "g": "gov",
+          "t": "agent",
+          "n": "Morgott",
+          "f": {
+            "role": "Project manager",
+            "model": "gpt-6-luna",
+            "channel": "#roundtable-hold"
+          },
+          "live": {
+            "agent": "project_manager",
+            "base": {
+              "name": "Morgott",
+              "model": "gpt-6-luna",
+              "channel": "roundtable-hold",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "compliance",
+          "g": "gov",
+          "t": "agent",
+          "n": "Enia",
+          "f": {
+            "role": "IT compliance · audit",
+            "model": "deterministic",
+            "channel": "#roundtable-hold"
+          },
+          "live": {
+            "agent": "compliance",
+            "base": {
+              "name": "Enia",
+              "model": "deterministic",
+              "channel": "roundtable-hold",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "cost",
+          "g": "gov",
+          "t": "agent",
+          "n": "Boc",
+          "f": {
+            "role": "Cost & FinOps",
+            "model": "deterministic",
+            "channel": "#roundtable-hold"
+          },
+          "live": {
+            "agent": "cost",
+            "base": {
+              "name": "Boc",
+              "model": "deterministic",
+              "channel": "roundtable-hold",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "writer",
+          "g": "gov",
+          "t": "agent",
+          "n": "Melina",
+          "f": {
+            "role": "Technical writer",
+            "model": "gpt-6.1-sol",
+            "channel": "#ideas-and-todos"
+          },
+          "more": {
+            "schedule": "Weekly pitch Sat 10:00"
+          },
+          "live": {
+            "agent": "writer",
+            "base": {
+              "name": "Melina",
+              "model": "gpt-6.1-sol",
+              "channel": "ideas-and-todos",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "scout",
+          "g": "gov",
+          "t": "agent",
+          "n": "Kalé",
+          "f": {
+            "role": "Scout · weekly ideas",
+            "model": "gpt-6.1-sol",
+            "channel": "#ideas-and-todos"
+          },
+          "more": {
+            "schedule": "Sun 09:00"
+          },
+          "live": {
+            "agent": "scout",
+            "base": {
+              "name": "Kalé",
+              "model": "gpt-6.1-sol",
+              "channel": "ideas-and-todos",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "mirror",
+          "g": "gov",
+          "t": "agent",
+          "n": "Radagon",
+          "f": {
+            "role": "Docs sync → homelab-hub",
+            "model": "gpt-6-luna",
+            "channel": "#homelab-infrastructure"
+          },
+          "more": {
+            "schedule": "Daily 07:30 when changed"
+          },
+          "live": {
+            "agent": "mirror",
+            "base": {
+              "name": "Radagon",
+              "model": "gpt-6-luna",
+              "channel": "homelab-infrastructure",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "scribe",
+          "g": "gov",
+          "t": "agent",
+          "n": "Miriel",
+          "f": {
+            "role": "Vault scribe",
+            "model": "gpt-6-luna",
+            "channel": "#homelab-infrastructure"
+          },
+          "more": {
+            "schedule": "Daily 06:00"
+          },
+          "live": {
+            "agent": "scribe",
+            "base": {
+              "name": "Miriel",
+              "model": "gpt-6-luna",
+              "channel": "homelab-infrastructure",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "checker",
+          "g": "gov",
+          "t": "agent",
+          "n": "Blaidd",
+          "f": {
+            "role": "Post-change verification",
+            "model": "deterministic",
+            "channel": "#homelab-infrastructure"
+          },
+          "more": {
+            "schedule": "Daily 05:10"
+          },
+          "live": {
+            "agent": "checker",
+            "base": {
+              "name": "Blaidd",
+              "model": "deterministic",
+              "channel": "homelab-infrastructure",
+              "reports_to": "governance"
+            }
+          }
+        },
+        {
+          "id": "security",
+          "g": "sec",
+          "t": "agent",
+          "n": "Loretta",
+          "f": {
+            "role": "Security lead · architect",
+            "model": "gpt-6.1-sol",
+            "channel": "#security-alerts"
+          },
+          "more": {
+            "schedule": "Posture every 6 h · signals 15 min · brief 07:45"
+          },
+          "live": {
+            "agent": "security",
+            "base": {
+              "name": "Loretta",
+              "model": "gpt-6.1-sol",
+              "channel": "security-alerts",
+              "reports_to": "boss"
+            }
+          }
+        },
+        {
+          "id": "security_engineer",
+          "g": "sec",
+          "t": "agent",
+          "n": "Millicent",
+          "f": {
+            "role": "Approved remediation",
+            "model": "gpt-6.1-sol",
+            "channel": "#security-alerts"
+          },
+          "live": {
+            "agent": "security_engineer",
+            "base": {
+              "name": "Millicent",
+              "model": "gpt-6.1-sol",
+              "channel": "security-alerts",
+              "reports_to": "security"
+            }
+          }
+        },
+        {
+          "id": "iam",
+          "g": "sec",
+          "t": "agent",
+          "n": "Rogier",
+          "f": {
+            "role": "IAM · access requests",
+            "model": "gpt-6-luna",
+            "channel": "#security-alerts"
+          },
+          "live": {
+            "agent": "iam",
+            "base": {
+              "name": "Rogier",
+              "model": "gpt-6-luna",
+              "channel": "security-alerts",
+              "reports_to": "security"
+            }
+          }
+        },
+        {
+          "id": "medic",
+          "g": "ops",
+          "t": "agent",
+          "n": "Corhyn",
+          "f": {
+            "role": "ITOps lead · SRE",
+            "model": "gpt-6.1-sol",
+            "channel": "#infrastructure-alerts"
+          },
+          "more": {
+            "schedule": "Incident scan every 5 min"
+          },
+          "live": {
+            "agent": "medic",
+            "base": {
+              "name": "Corhyn",
+              "model": "gpt-6.1-sol",
+              "channel": "infrastructure-alerts",
+              "reports_to": "boss"
+            }
+          }
+        },
+        {
+          "id": "watcher",
+          "g": "ops",
+          "t": "agent",
+          "n": "Sellen",
+          "f": {
+            "role": "Observability",
+            "model": "deterministic",
+            "channel": "#infrastructure-alerts"
+          },
+          "more": {
+            "schedule": "Every 2 min · digest 08:00 · Glance check :05/:35"
+          },
+          "live": {
+            "agent": "watcher",
+            "base": {
+              "name": "Sellen",
+              "model": "deterministic",
+              "channel": "infrastructure-alerts",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "netops",
+          "g": "ops",
+          "t": "agent",
+          "n": "Torrent",
+          "f": {
+            "role": "Network · Omada & ACLs",
+            "model": "gpt-6.1-sol",
+            "channel": "#infrastructure-alerts"
+          },
+          "more": {
+            "schedule": "Watch 10 min · report 07:00"
+          },
+          "live": {
+            "agent": "netops",
+            "base": {
+              "name": "Torrent",
+              "model": "gpt-6.1-sol",
+              "channel": "infrastructure-alerts",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "backup",
+          "g": "ops",
+          "t": "agent",
+          "n": "Iji",
+          "f": {
+            "role": "Backups · PBS & NAS",
+            "model": "deterministic",
+            "channel": "#backups"
+          },
+          "more": {
+            "schedule": "Watch 30 min · report 08:00"
+          },
+          "live": {
+            "agent": "backup",
+            "base": {
+              "name": "Iji",
+              "model": "deterministic",
+              "channel": "backups",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "builder",
+          "g": "ops",
+          "t": "agent",
+          "n": "Hewg",
+          "f": {
+            "role": "Compute & storage · patches",
+            "model": "gpt-6-luna",
+            "channel": "#homelab-infrastructure"
+          },
+          "more": {
+            "schedule": "Audit 07:10"
+          },
+          "live": {
+            "agent": "builder",
+            "base": {
+              "name": "Hewg",
+              "model": "gpt-6-luna",
+              "channel": "homelab-infrastructure",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "devops",
+          "g": "ops",
+          "t": "agent",
+          "n": "Radahn",
+          "f": {
+            "role": "Terraform · Ansible · GitLab",
+            "model": "gpt-6-luna",
+            "channel": "#homelab-infrastructure"
+          },
+          "live": {
+            "agent": "devops",
+            "base": {
+              "name": "Radahn",
+              "model": "gpt-6-luna",
+              "channel": "homelab-infrastructure",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "ipam",
+          "g": "ops",
+          "t": "agent",
+          "n": "Diallos",
+          "f": {
+            "role": "IPAM · address design",
+            "model": "deterministic",
+            "channel": "#homelab-infrastructure"
+          },
+          "live": {
+            "agent": "ipam",
+            "base": {
+              "name": "Diallos",
+              "model": "deterministic",
+              "channel": "homelab-infrastructure",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "media",
+          "g": "ops",
+          "t": "agent",
+          "n": "Nepheli Loux",
+          "f": {
+            "role": "Media stack · film pal",
+            "model": "gpt-6-luna",
+            "channel": "#cinema-lounge"
+          },
+          "more": {
+            "schedule": "Watch 10 min · pick 19:30"
+          },
+          "live": {
+            "agent": "media",
+            "base": {
+              "name": "Nepheli Loux",
+              "model": "gpt-6-luna",
+              "channel": "cinema-lounge",
+              "reports_to": "medic"
+            }
+          }
+        },
+        {
+          "id": "bossvc",
+          "g": "plat",
+          "t": "service",
+          "n": "boss.service",
+          "f": {
+            "role": "chat · approvals · audits"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "boss"
+          }
+        },
+        {
+          "id": "portalsvc",
+          "g": "plat",
+          "t": "service",
+          "n": "olympus-portal",
+          "f": {
+            "port": "8088",
+            "voice": "browser + Companion"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "olympus-portal"
+          }
+        },
+        {
+          "id": "labfeedsvc",
+          "g": "plat",
+          "t": "service",
+          "n": "labfeed",
+          "f": {
+            "port": "8790"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "labfeed"
+          }
+        },
+        {
+          "id": "sresvc",
+          "g": "plat",
+          "t": "service",
+          "n": "sre-agent",
+          "f": {
+            "role": "patching 02:00–05:00"
+          },
+          "s": "ok",
+          "live": {
+            "unit": "sre-agent"
+          }
+        },
+        {
+          "id": "timers",
+          "g": "plat",
+          "t": "timer",
+          "n": "systemd timers",
+          "f": {
+            "role": "every scheduled agent run"
+          }
+        },
+        {
+          "id": "db",
+          "g": "plat",
+          "t": "data",
+          "n": "olympus.db",
+          "f": {
+            "at": "~/.olympus",
+            "holds": "runs · approvals · costs"
+          }
+        },
+        {
+          "id": "discord",
+          "g": "integ",
+          "t": "channel",
+          "n": "Discord",
+          "f": {
+            "role": "chat · alerts · ✅"
+          }
+        },
+        {
+          "id": "gitlabi",
+          "g": "integ",
+          "t": "devops",
+          "n": "GitLab issues",
+          "f": {
+            "project": "#6",
+            "role": "approvals · audit trail"
+          }
+        },
+        {
+          "id": "grafanai",
+          "g": "integ",
+          "t": "monitor",
+          "n": "Grafana",
+          "f": {
+            "role": "change markers"
+          }
+        },
+        {
+          "id": "glancei",
+          "g": "integ",
+          "t": "monitor",
+          "n": "Glance",
+          "f": {
+            "role": "read by observe.py"
+          }
+        },
+        {
+          "id": "openai",
+          "g": "integ",
+          "t": "cloud",
+          "n": "OpenAI models",
+          "f": {
+            "models": "luna · sol · 6.1-sol",
+            "budget": "$65 / month"
+          }
+        },
+        {
+          "id": "companion",
+          "g": "integ",
+          "t": "device",
+          "n": "Companion app",
+          "f": {
+            "on": "Kratos PC",
+            "hotkey": "Ctrl+Alt+A → Gideon"
+          }
+        },
+        {
+          "id": "gn1",
+          "g": "gnotes",
+          "t": "note",
+          "n": "How approvals work",
+          "f": null,
+          "detail": true,
+          "text": "An agent files an approval with the exact command. It appears in Discord (and GitLab issue #6 project); you react ✅ or ❌. boss.service runs only approved commands, records the result in olympus.db, posts a Grafana marker, and Enia/Blaidd audit it."
+        },
+        {
+          "id": "gn2",
+          "g": "gnotes",
+          "t": "note",
+          "n": "Models & cost",
+          "f": null,
+          "detail": true,
+          "text": "Leads and engineers use gpt-6-luna or gpt-6.1-sol; companions and specialists use gpt-6-sol; watchers (Sellen, Iji, Enia, Boc, Diallos, Blaidd) are deterministic code with no model cost. Boc tracks spend against the $65/month budget."
+        }
+      ],
+      "edges": [
+        [
+          "boss",
+          "hermes",
+          "reports to",
+          "report"
+        ],
+        [
+          "governance",
+          "boss",
+          "",
+          "report"
+        ],
+        [
+          "security",
+          "boss",
+          "",
+          "report"
+        ],
+        [
+          "medic",
+          "boss",
+          "",
+          "report"
+        ],
+        [
+          "boss",
+          "bossvc",
+          "runs in",
+          "dep"
+        ],
+        [
+          "bossvc",
+          "discord",
+          "posts · reads ✅",
+          "dep"
+        ],
+        [
+          "bossvc",
+          "db",
+          "state",
+          "data"
+        ],
+        [
+          "bossvc",
+          "gitlabi",
+          "issues",
+          "dep"
+        ],
+        [
+          "bossvc",
+          "grafanai",
+          "change markers",
+          "dep"
+        ],
+        [
+          "labfeedsvc",
+          "glancei",
+          "feeds",
+          "dep"
+        ],
+        [
+          "plat",
+          "openai",
+          "LLM calls",
+          "dep"
+        ],
+        [
+          "companion",
+          "portalsvc",
+          "voice",
+          "dep"
+        ],
+        [
+          "hermes",
+          "discord",
+          "approves",
+          "dep"
+        ]
+      ]
+    },
+    {
+      "id": "hw",
+      "title": "Hardware",
+      "blurb": "Physical machines, drives and what each host carries",
+      "groups": [
+        {
+          "id": "h1",
+          "label": "node01 · Minisforum EliteMini",
+          "c": "#4f8cff",
+          "cols": 1,
+          "dcols": 3,
+          "desc": "192.168.20.20 · Zephyrus p3 · Proxmox VE 9.2.21"
+        },
+        {
+          "id": "h2",
+          "label": "node02 · Bosgame EffiZen",
+          "c": "#60a5fa",
+          "cols": 1,
+          "dcols": 2,
+          "desc": "192.168.20.21 · Zephyrus p4 · Proxmox VE 9.2.21"
+        },
+        {
+          "id": "h3",
+          "label": "node03 · Atreus PC (MSI B550M)",
+          "c": "#818cf8",
+          "cols": 1,
+          "dcols": 2,
+          "desc": "192.168.20.22 · Zephyrus p5 · Proxmox VE 9.2.21"
+        },
+        {
+          "id": "hn",
+          "label": "Synology NAS · Callimachus",
+          "c": "#f59e0b",
+          "cols": 1,
+          "dcols": 2,
+          "desc": "192.168.20.32 · 4 HDD + 2 M.2"
+        },
+        {
+          "id": "hp",
+          "label": "Proxmox Backup Server",
+          "c": "#eab308",
+          "cols": 2,
+          "desc": "CT100 on node03 · PBS 3.4.9"
+        },
+        {
+          "id": "hg",
+          "label": "Network gear",
+          "c": "#a78bfa",
+          "cols": 2,
+          "desc": "Omada SDN · site Parang Marikina"
+        },
+        {
+          "id": "hx",
+          "label": "Other machines",
+          "c": "#94a3b8",
+          "cols": 2
+        }
+      ],
+      "layout": [
+        [
+          "h1",
+          "h2",
+          "h3"
+        ],
+        [
+          "hn",
+          "hp"
+        ],
+        [
+          "hg",
+          "hx"
+        ]
+      ],
+      "nodes": [
+        {
+          "id": "hw1",
+          "g": "h1",
+          "t": "hw",
+          "n": "node01",
+          "f": {
+            "CPU": "Ryzen 9 PRO 8945HS",
+            "threads": "16",
+            "RAM": "60 GiB",
+            "disk": "1 TB NVMe (Kingston NV3)"
+          },
+          "s": "warn",
+          "note": "RAM fully allocated (60/60 GiB)",
+          "more": {
+            "NIC": "2.5G (nic0) · 2nd NIC unused",
+            "local_lvm": "111 / 794 GB",
+            "roles": "all LXCs · Tailscale router"
+          },
+          "live": {
+            "pve": "node01",
+            "ram_note": true
+          }
+        },
+        {
+          "id": "g1s",
+          "g": "h1",
+          "t": "vm",
+          "n": "Guests",
+          "f": {
+            "running": "11 (2 VM · 9 LXC)",
+            "allocated": "28 vCPU · 60 GiB"
+          },
+          "simple": true,
+          "icon": "app"
+        },
+        {
+          "id": "g103",
+          "g": "h1",
+          "t": "vm",
+          "n": "VM103 ansible-controller01",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 8 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 103,
+            "spec": true,
+            "base": {
+              "name": "ansible-controller01",
+              "node": "node01",
+              "ip": "192.168.20.30",
+              "status": "running",
+              "size": [
+                2,
+                8.0,
+                20.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "g107",
+          "g": "h1",
+          "t": "vm",
+          "n": "VM107 core-utilities01",
+          "f": {
+            "host": "node01",
+            "size": "4 vCPU · 24 GiB · 140 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 107,
+            "spec": true,
+            "base": {
+              "name": "docker-vm-core-utilities01",
+              "node": "node01",
+              "ip": "192.168.40.13",
+              "status": "running",
+              "size": [
+                4,
+                24.0,
+                140.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "g200",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT200 docker-lxc-glance",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 4 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 200,
+            "spec": true,
+            "base": {
+              "name": "docker-lxc-glance",
+              "node": "node01",
+              "ip": "192.168.40.12",
+              "status": "running",
+              "size": [
+                2,
+                4.0,
+                19.5
+              ]
+            }
+          }
+        },
+        {
+          "id": "g201",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT201 docker-lxc-bots",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 2 GiB · 8 GB"
+          },
+          "detail": true,
+          "s": "off",
+          "live": {
+            "guest": 201,
+            "spec": true,
+            "base": {
+              "name": "docker-lxc-bots",
+              "node": "node01",
+              "ip": "192.168.40.17",
+              "status": "running",
+              "size": [
+                2,
+                2.0,
+                7.8
+              ]
+            }
+          }
+        },
+        {
+          "id": "g202",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT202 pihole",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 1 GiB · 8 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 202,
+            "spec": true,
+            "base": {
+              "name": "pihole",
+              "node": "node01",
+              "ip": "192.168.90.53",
+              "status": "running",
+              "size": [
+                2,
+                1.0,
+                7.8
+              ]
+            }
+          }
+        },
+        {
+          "id": "g203",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT203 traefik-lxc",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 2 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 203,
+            "spec": true,
+            "base": {
+              "name": "traefik-lxc",
+              "node": "node01",
+              "ip": "192.168.40.20",
+              "status": "running",
+              "size": [
+                2,
+                2.0,
+                19.5
+              ]
+            }
+          }
+        },
+        {
+          "id": "g205",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT205 docker-lxc-media",
+          "f": {
+            "host": "node01",
+            "size": "4 vCPU · 8 GiB · 49 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 205,
+            "spec": true,
+            "base": {
+              "name": "docker-lxc-media",
+              "node": "node01",
+              "ip": "192.168.40.11",
+              "status": "running",
+              "size": [
+                4,
+                8.0,
+                48.9
+              ]
+            }
+          }
+        },
+        {
+          "id": "g206",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT206 homeassistant-lxc",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 4 GiB · 31 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 206,
+            "spec": true,
+            "base": {
+              "name": "homeassistant-lxc",
+              "node": "node01",
+              "ip": "192.168.40.25",
+              "status": "running",
+              "size": [
+                2,
+                4.0,
+                31.2
+              ]
+            }
+          }
+        },
+        {
+          "id": "g209",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT209 homepage-lxc",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 1 GiB · 8 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 209,
+            "spec": true,
+            "base": {
+              "name": "homepage-lxc",
+              "node": "node01",
+              "ip": "192.168.40.27",
+              "status": "running",
+              "size": [
+                2,
+                1.0,
+                7.8
+              ]
+            }
+          }
+        },
+        {
+          "id": "g210",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT210 helios-lxc",
+          "f": {
+            "host": "node01",
+            "size": "2 vCPU · 2 GiB · 8 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 210,
+            "spec": true,
+            "base": {
+              "name": "helios-lxc",
+              "node": "node01",
+              "ip": "192.168.40.14",
+              "status": "running",
+              "size": [
+                2,
+                2.0,
+                7.8
+              ]
+            }
+          }
+        },
+        {
+          "id": "g211",
+          "g": "h1",
+          "t": "lxc",
+          "n": "CT211 codex-agent-lxc",
+          "f": {
+            "host": "node01",
+            "size": "4 vCPU · 4 GiB · 16 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 211,
+            "spec": true,
+            "base": {
+              "name": "codex-agent-lxc",
+              "node": "node01",
+              "ip": "192.168.40.16",
+              "status": "running",
+              "size": [
+                4,
+                4.0,
+                15.6
+              ]
+            }
+          }
+        },
+        {
+          "id": "g1000",
+          "g": "h1",
+          "t": "vm",
+          "n": "VM1000 tpl-ubuntu 24.04",
+          "f": {
+            "host": "node01",
+            "size": "template · 1 vCPU · 2 GiB"
+          },
+          "detail": true,
+          "s": "off",
+          "live": {
+            "guest": 1000,
+            "spec": true,
+            "base": {
+              "name": "tpl-ubuntuv24.04-v1",
+              "node": "node01",
+              "ip": "",
+              "status": "stopped",
+              "size": [
+                1,
+                2.0,
+                3.5
+              ]
+            }
+          }
+        },
+        {
+          "id": "hw2",
+          "g": "h2",
+          "t": "hw",
+          "n": "node02",
+          "f": {
+            "CPU": "Ryzen 9 6900HX",
+            "threads": "16",
+            "RAM": "28 GiB",
+            "disk": "1 TB NVMe (Kingston)"
+          },
+          "s": "ok",
+          "more": {
+            "NIC": "2.5G (nic0) · 2nd NIC unused",
+            "local_lvm": "47 / 816 GB",
+            "also": "Tailscale"
+          },
+          "live": {
+            "pve": "node02",
+            "ram_note": true
+          }
+        },
+        {
+          "id": "g2s",
+          "g": "h2",
+          "t": "vm",
+          "n": "Guests",
+          "f": {
+            "running": "5 (1 VM · 4 LXC)",
+            "allocated": "10 vCPU · 14 GiB"
+          },
+          "simple": true,
+          "icon": "app"
+        },
+        {
+          "id": "g121",
+          "g": "h2",
+          "t": "vm",
+          "n": "VM121 gitlab-runner-vm01",
+          "f": {
+            "host": "node02",
+            "size": "2 vCPU · 2 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 121,
+            "spec": true,
+            "base": {
+              "name": "gitlab-runner-vm01",
+              "node": "node02",
+              "ip": "192.168.40.24",
+              "status": "running",
+              "size": [
+                2,
+                2.0,
+                20.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "g204",
+          "g": "h2",
+          "t": "lxc",
+          "n": "CT204 authentik-lxc",
+          "f": {
+            "host": "node02",
+            "size": "2 vCPU · 4 GiB · 29 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 204,
+            "spec": true,
+            "base": {
+              "name": "authentik-lxc",
+              "node": "node02",
+              "ip": "192.168.40.21",
+              "status": "running",
+              "size": [
+                2,
+                4.0,
+                29.4
+              ]
+            }
+          }
+        },
+        {
+          "id": "g207",
+          "g": "h2",
+          "t": "lxc",
+          "n": "CT207 chronicle-lxc",
+          "f": {
+            "host": "node02",
+            "size": "2 vCPU · 2 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 207,
+            "spec": true,
+            "base": {
+              "name": "chronicle-lxc",
+              "node": "node02",
+              "ip": "192.168.40.15",
+              "status": "running",
+              "size": [
+                2,
+                2.0,
+                19.5
+              ]
+            }
+          }
+        },
+        {
+          "id": "g212",
+          "g": "h2",
+          "t": "lxc",
+          "n": "CT212 study-lxc",
+          "f": {
+            "host": "node02",
+            "size": "2 vCPU · 2 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 212,
+            "spec": true,
+            "base": {
+              "name": "study-lxc",
+              "node": "node02",
+              "ip": "192.168.40.38",
+              "status": "running",
+              "size": [
+                2,
+                2.0,
+                19.5
+              ]
+            }
+          }
+        },
+        {
+          "id": "g213",
+          "g": "h2",
+          "t": "lxc",
+          "n": "CT213 openbao-lxc",
+          "f": {
+            "host": "node02",
+            "size": "2 vCPU · 1 GiB · 8 GB + 1 GB unseal (no backup)"
+          },
+          "detail": true,
+          "live": {
+            "guest": 213,
+            "spec": true,
+            "base": {
+              "name": "openbao-lxc",
+              "node": "node02",
+              "ip": "192.168.40.39",
+              "status": "running",
+              "size": [
+                2,
+                1.0,
+                8.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "hw3",
+          "g": "h3",
+          "t": "hw",
+          "n": "node03 · Atreus PC",
+          "f": {
+            "CPU": "Ryzen 9 5900XT",
+            "threads": "32",
+            "RAM": "31 GiB",
+            "board": "MSI MAG B550M Mortar Max WiFi"
+          },
+          "s": "warn",
+          "note": "Guests allotted 31.8 GiB on 31 GiB",
+          "more": {
+            "NIC": "2.5G (nic0)",
+            "local_lvm": "16 / 794 GB",
+            "also": "Tailscale · desktop, reboots often"
+          },
+          "itemsLabel": "Drives",
+          "items": [
+            [
+              "Kingston SNV3S 1 TB",
+              "NVMe"
+            ],
+            [
+              "Lexar NM610PRO 1 TB",
+              "NVMe"
+            ],
+            [
+              "Samsung 860 EVO 1 TB",
+              "SATA SSD"
+            ],
+            [
+              "Seagate IronWolf 4 TB",
+              "HDD · PBS main"
+            ]
+          ],
+          "live": {
+            "pve": "node03",
+            "ram_note": true
+          }
+        },
+        {
+          "id": "g3s",
+          "g": "h3",
+          "t": "vm",
+          "n": "Guests",
+          "f": {
+            "running": "3 (2 VM · 1 LXC)",
+            "allocated": "6 vCPU · 31.8 GiB",
+            "templates": "2 Windows Server"
+          },
+          "simple": true,
+          "icon": "app"
+        },
+        {
+          "id": "g100",
+          "g": "h3",
+          "t": "lxc",
+          "n": "CT100 pbs-server",
+          "f": {
+            "host": "node03",
+            "size": "2 vCPU · 4 GiB · 20 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 100,
+            "spec": true,
+            "base": {
+              "name": "pbs-server",
+              "node": "node03",
+              "ip": "192.168.20.50",
+              "status": "running",
+              "size": [
+                2,
+                4.0,
+                19.5
+              ]
+            }
+          }
+        },
+        {
+          "id": "g106",
+          "g": "h3",
+          "t": "vm",
+          "n": "VM106 gitlab-vm01",
+          "f": {
+            "host": "node03",
+            "size": "2 vCPU · 11.8 GiB · 100 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 106,
+            "spec": true,
+            "base": {
+              "name": "gitlab-vm01",
+              "node": "node03",
+              "ip": "192.168.40.23",
+              "status": "running",
+              "size": [
+                2,
+                11.8,
+                100.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "g108",
+          "g": "h3",
+          "t": "vm",
+          "n": "VM108 immich-vm01",
+          "f": {
+            "host": "node03",
+            "size": "2 vCPU · 16 GiB · 532 GB"
+          },
+          "detail": true,
+          "live": {
+            "guest": 108,
+            "spec": true,
+            "base": {
+              "name": "immich-vm01",
+              "node": "node03",
+              "ip": "192.168.40.22",
+              "status": "running",
+              "size": [
+                2,
+                16.0,
+                532.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "g9022",
+          "g": "h3",
+          "t": "vm",
+          "n": "VM9022 WS2022 template",
+          "f": {
+            "host": "node03",
+            "size": "template · 2 vCPU · 4 GiB"
+          },
+          "detail": true,
+          "s": "off",
+          "live": {
+            "guest": 9022,
+            "spec": true,
+            "base": {
+              "name": "WS2022-Template",
+              "node": "node03",
+              "ip": "",
+              "status": "stopped",
+              "size": [
+                2,
+                4.0,
+                0.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "g9025",
+          "g": "h3",
+          "t": "vm",
+          "n": "VM9025 WS2025 template",
+          "f": {
+            "host": "node03",
+            "size": "template · 2 vCPU · 4 GiB"
+          },
+          "detail": true,
+          "s": "off",
+          "live": {
+            "guest": 9025,
+            "spec": true,
+            "base": {
+              "name": "WS2025-Template",
+              "node": "node03",
+              "ip": "",
+              "status": "stopped",
+              "size": [
+                2,
+                4.0,
+                60.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "nasbox",
+          "g": "hn",
+          "t": "storage",
+          "n": "Callimachus",
+          "f": {
+            "volume": "Volume 2 · 47%",
+            "used": "12.6 / 26.9 TB",
+            "pool": "Storage Pool 2 · 28 TB",
+            "temp": "52 °C"
+          },
+          "s": "ok",
+          "note": "eth0 (192.168.20.31) dead: use .32",
+          "itemsLabel": "Drives",
+          "items": [
+            [
+              "Disk 1 · Seagate 8 TB",
+              "42 °C"
+            ],
+            [
+              "Disk 2 · Seagate 10 TB",
+              "45 °C"
+            ],
+            [
+              "Disk 3 · Seagate 10 TB",
+              "45 °C"
+            ],
+            [
+              "Disk 4 · Seagate 12 TB",
+              "40 °C"
+            ],
+            [
+              "M.2 1 · Kingston NV2 1 TB",
+              "32 °C"
+            ],
+            [
+              "M.2 2 · Crucial P2 1 TB",
+              "36 °C"
+            ]
+          ]
+        },
+        {
+          "id": "nfs",
+          "g": "hn",
+          "t": "storage",
+          "n": "NFS exports",
+          "f": {
+            "mount": "rw,soft,nfsvers=3",
+            "to": "all 3 nodes"
+          },
+          "detail": true,
+          "itemsLabel": "Shares",
+          "items": [
+            [
+              "VMDisks",
+              "11.8 / 25 TB (shared vol)"
+            ],
+            [
+              "ISOs",
+              "shared vol"
+            ],
+            [
+              "ProxmoxMedia",
+              "node01/02 only"
+            ],
+            [
+              "ProxmoxData",
+              "1.9 / 7.2 TB"
+            ],
+            [
+              "Proxmox-LXCs",
+              "LXC configs"
+            ]
+          ]
+        },
+        {
+          "id": "ds1",
+          "g": "hp",
+          "t": "backup",
+          "n": "Datastore · daily",
+          "f": {
+            "path": "/backup-ssd",
+            "drive": "Kingston NVMe 1 TB",
+            "used": "618 / 916 GB (67%)"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "ds2",
+          "g": "hp",
+          "t": "backup",
+          "n": "Datastore · main",
+          "f": {
+            "path": "/backup",
+            "drive": "4 TB HDD",
+            "used": "448 / 3666 GB (12%)"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "gr",
+          "g": "hg",
+          "t": "router",
+          "n": "ER605 v2.20",
+          "f": {
+            "role": "core router",
+            "IP": "192.168.0.1"
+          },
+          "live": {
+            "device": "192.168.0.1",
+            "base": {
+              "online": true,
+              "name": "Core Router"
+            }
+          }
+        },
+        {
+          "id": "goc",
+          "g": "hg",
+          "t": "service",
+          "n": "OC300",
+          "f": {
+            "role": "Omada controller",
+            "IP": "192.168.0.101"
+          },
+          "icon": "server"
+        },
+        {
+          "id": "gs1",
+          "g": "hg",
+          "t": "switch",
+          "n": "SG3210 · Core",
+          "f": {
+            "ports": "8× 1G + SFP",
+            "IP": "192.168.90.54"
+          },
+          "live": {
+            "device": "192.168.90.54",
+            "base": {
+              "online": true,
+              "name": "Core Switch"
+            }
+          }
+        },
+        {
+          "id": "gs2",
+          "g": "hg",
+          "t": "switch",
+          "n": "SG3210X-M2 · Zephyrus",
+          "f": {
+            "ports": "2.5G multi-gig",
+            "IP": "192.168.90.58"
+          },
+          "live": {
+            "device": "192.168.90.58",
+            "base": {
+              "online": true,
+              "name": "Zephyrus Switch"
+            }
+          }
+        },
+        {
+          "id": "gs3",
+          "g": "hg",
+          "t": "switch",
+          "n": "SG2210P · Morpheus Rack",
+          "f": {
+            "ports": "1G PoE+",
+            "IP": "192.168.90.51"
+          },
+          "live": {
+            "device": "192.168.90.51",
+            "base": {
+              "online": true,
+              "name": "Morpheus Rack Switch"
+            }
+          }
+        },
+        {
+          "id": "gs4",
+          "g": "hg",
+          "t": "switch",
+          "n": "ES206GP · Atreus",
+          "f": {
+            "ports": "1G PoE",
+            "IP": "192.168.90.50"
+          },
+          "live": {
+            "device": "192.168.90.50",
+            "base": {
+              "online": true,
+              "name": "Atreus Switch"
+            }
+          }
+        },
+        {
+          "id": "ga1",
+          "g": "hg",
+          "t": "ap",
+          "n": "EAP610 · First Floor",
+          "f": {
+            "IP": "192.168.90.52"
+          },
+          "live": {
+            "device": "192.168.90.52",
+            "base": {
+              "online": true,
+              "name": "First Floor EAP"
+            }
+          }
+        },
+        {
+          "id": "ga2",
+          "g": "hg",
+          "t": "ap",
+          "n": "EAP225 · Second Floor",
+          "f": {
+            "IP": "192.168.90.56"
+          },
+          "live": {
+            "device": "192.168.90.56",
+            "base": {
+              "online": true,
+              "name": "Second Floor EAP"
+            }
+          }
+        },
+        {
+          "id": "ga3",
+          "g": "hg",
+          "t": "ap",
+          "n": "EAP603-Outdoor",
+          "f": {
+            "IP": "192.168.90.55"
+          },
+          "live": {
+            "device": "192.168.90.55",
+            "base": {
+              "online": true,
+              "name": "Outdoor EAP"
+            }
+          }
+        },
+        {
+          "id": "gont",
+          "g": "hg",
+          "t": "router",
+          "n": "Huawei EG8245H5",
+          "f": {
+            "role": "Converge ONT",
+            "IP": "192.168.100.1"
+          }
+        },
+        {
+          "id": "xopn",
+          "g": "hx",
+          "t": "hw",
+          "n": "homelab-dns01 mini PC",
+          "f": {
+            "port": "Morpheus p6",
+            "OS": "Ubuntu 26.04 · Technitium",
+            "IP": "192.168.90.60"
+          },
+          "s": "ok"
+        },
+        {
+          "id": "xkratos",
+          "g": "hx",
+          "t": "device",
+          "n": "Kratos PC",
+          "f": {
+            "IP": "192.168.10.10",
+            "link": "Zephyrus p2 · 2.5G"
+          }
+        },
+        {
+          "id": "xkvm",
+          "g": "hx",
+          "t": "device",
+          "n": "2× GL.iNet KVM",
+          "f": {
+            "IPs": "192.168.10.54 · 192.168.20.53",
+            "ports": "Morpheus p7 · p8"
+          }
+        }
+      ],
+      "edges": [
+        [
+          "h1",
+          "hn",
+          "NFS · 2.5G",
+          "data"
+        ],
+        [
+          "h2",
+          "hn",
+          "NFS",
+          "data"
+        ],
+        [
+          "h3",
+          "hn",
+          "NFS",
+          "data"
+        ],
+        [
+          "g100",
+          "hp",
+          "runs",
+          "dep"
+        ],
+        [
+          "hp",
+          "h1",
+          "backs up",
+          "data"
+        ]
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "tab": "arch",
+      "node": "er605",
+      "t": "Inter-VLAN ACLs disabled",
+      "d": "Since 2026-10-16; traffic between VLANs is unfiltered"
+    },
+    {
+      "tab": "svc",
+      "node": "svm",
+      "t": "Rotate the Service Version Manager key",
+      "d": "Exposed by the old Glance page and the SVM API"
+    },
+    {
+      "tab": "arch",
+      "node": "nas",
+      "t": "NAS eth0 is dead",
+      "d": "Use 192.168.20.32 for everything"
+    },
+    {
+      "tab": "svc",
+      "node": "sab",
+      "t": "SABnzbd disabled",
+      "d": "Usenet provider expired; torrents only"
+    },
+    {
+      "tab": "net",
+      "node": "z6",
+      "t": "Unlabelled 2.5G port",
+      "d": "Zephyrus p6 is up on VLAN 20 with no name"
+    },
+    {
+      "tab": "net",
+      "node": "v1",
+      "t": "VLAN 1 gets only one DNS server",
+      "d": "Default network DHCP still hands out Pi-hole 192.168.90.53 only; set Technitium .60 first, Pi-hole .53 second"
+    }
+  ]
+}

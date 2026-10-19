@@ -1,0 +1,978 @@
+{
+  "_comment": "Roundtable interconnection map for the portal. x/y are positions on a 1260x800 canvas. metric (optional) counts live traffic over 30 days: runs = rows in the run ledger, approvals = approval requests.",
+  "nodes": [
+    {
+      "id": "owner",
+      "label": "You (Hermes)",
+      "emoji": "🧑",
+      "type": "human",
+      "x": 60,
+      "y": 400
+    },
+    {
+      "id": "ch:olympus",
+      "label": "#roundtable-hold",
+      "sub": "Sentinel bot",
+      "emoji": "💬",
+      "type": "discord",
+      "x": 215,
+      "y": 400
+    },
+    {
+      "id": "boss",
+      "type": "agent",
+      "x": 400,
+      "y": 400
+    },
+    {
+      "id": "medic",
+      "type": "agent",
+      "x": 640,
+      "y": 70
+    },
+    {
+      "id": "watcher",
+      "type": "agent",
+      "x": 640,
+      "y": 150
+    },
+    {
+      "id": "netops",
+      "type": "agent",
+      "x": 640,
+      "y": 230
+    },
+    {
+      "id": "builder",
+      "type": "agent",
+      "x": 640,
+      "y": 310
+    },
+    {
+      "id": "checker",
+      "type": "agent",
+      "x": 640,
+      "y": 400
+    },
+    {
+      "id": "scribe",
+      "type": "agent",
+      "x": 640,
+      "y": 490
+    },
+    {
+      "id": "mirror",
+      "type": "agent",
+      "x": 640,
+      "y": 570
+    },
+    {
+      "id": "scout",
+      "type": "agent",
+      "x": 640,
+      "y": 650
+    },
+    {
+      "id": "writer",
+      "type": "agent",
+      "x": 640,
+      "y": 730
+    },
+    {
+      "id": "ch:infrastructure-alerts",
+      "label": "#infrastructure-alerts",
+      "sub": "Sentinel bot",
+      "emoji": "🚨",
+      "type": "discord",
+      "x": 900,
+      "y": 130
+    },
+    {
+      "id": "ch:homelab-infrastructure",
+      "label": "#homelab-infrastructure",
+      "sub": "Sentinel bot",
+      "emoji": "🏗️",
+      "type": "discord",
+      "x": 900,
+      "y": 440
+    },
+    {
+      "id": "ch:homelab-scout",
+      "label": "#homelab-scout",
+      "sub": "Sentinel bot",
+      "emoji": "🧭",
+      "type": "discord",
+      "x": 900,
+      "y": 650
+    },
+    {
+      "id": "ch:blog-studio",
+      "label": "#blog-studio",
+      "sub": "Sentinel bot",
+      "emoji": "🪶",
+      "type": "discord",
+      "x": 900,
+      "y": 740
+    },
+    {
+      "id": "sys:proxmox",
+      "label": "Proxmox cluster",
+      "emoji": "🖥️",
+      "type": "system",
+      "x": 1160,
+      "y": 300
+    },
+    {
+      "id": "sys:hosts",
+      "label": "Docker hosts / LXCs",
+      "emoji": "🐳",
+      "type": "system",
+      "x": 1160,
+      "y": 40
+    },
+    {
+      "id": "sys:prom",
+      "label": "Prometheus · Loki · Grafana",
+      "emoji": "📈",
+      "type": "system",
+      "x": 1160,
+      "y": 140
+    },
+    {
+      "id": "sys:omada",
+      "label": "Omada · Pi-hole · Traefik",
+      "emoji": "🌐",
+      "type": "system",
+      "x": 1160,
+      "y": 220
+    },
+    {
+      "id": "sys:gitlab",
+      "label": "GitLab issues",
+      "emoji": "🦊",
+      "type": "system",
+      "x": 1160,
+      "y": 380
+    },
+    {
+      "id": "sys:vault",
+      "label": "Obsidian vault",
+      "emoji": "🗃️",
+      "type": "system",
+      "x": 1160,
+      "y": 500
+    },
+    {
+      "id": "sys:github",
+      "label": "GitHub homelab-hub",
+      "emoji": "🐙",
+      "type": "system",
+      "x": 1160,
+      "y": 590
+    },
+    {
+      "id": "sys:web",
+      "label": "The web",
+      "emoji": "🔎",
+      "type": "system",
+      "x": 1160,
+      "y": 680
+    },
+    {
+      "id": "sys:openai",
+      "label": "OpenAI (budget $65/mo)",
+      "emoji": "🧠",
+      "type": "system",
+      "x": 400,
+      "y": 640
+    },
+    {
+      "id": "security",
+      "type": "agent",
+      "x": 400,
+      "y": 190
+    },
+    {
+      "id": "ch:security-alerts",
+      "label": "#security-alerts",
+      "sub": "Sentinel bot",
+      "emoji": "🛡️",
+      "type": "discord",
+      "x": 215,
+      "y": 190
+    },
+    {
+      "id": "sys:storage",
+      "label": "PBS · NAS storage",
+      "emoji": "💾",
+      "type": "system",
+      "x": 1160,
+      "y": 760
+    },
+    {
+      "id": "backup",
+      "type": "agent",
+      "x": 640,
+      "y": 810
+    },
+    {
+      "id": "ch:backups",
+      "label": "#backups",
+      "emoji": "💾",
+      "type": "discord",
+      "x": 900,
+      "y": 830
+    },
+    {
+      "id": "media",
+      "type": "agent",
+      "x": 640,
+      "y": 900
+    },
+    {
+      "id": "ch:cinema-lounge",
+      "label": "#cinema-lounge",
+      "sub": "Sentinel bot",
+      "emoji": "🍿",
+      "type": "discord",
+      "x": 900,
+      "y": 920
+    },
+    {
+      "id": "sys:media",
+      "label": "Media stack (CT205)",
+      "emoji": "🎞️",
+      "type": "system",
+      "x": 1160,
+      "y": 850
+    }
+  ],
+  "edges": [
+    {
+      "from": "owner",
+      "to": "ch:olympus",
+      "kind": "command",
+      "label": "you type requests · ✅/❌ approvals"
+    },
+    {
+      "from": "ch:olympus",
+      "to": "boss",
+      "kind": "command",
+      "label": "Gideon polls every 5 s"
+    },
+    {
+      "from": "boss",
+      "to": "ch:olympus",
+      "kind": "post",
+      "label": "replies · approvals · 21:00 digest",
+      "metric": {
+        "runs": {
+          "agent": "boss"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "medic",
+      "kind": "command",
+      "label": "routes questions",
+      "metric": {
+        "runs": {
+          "agent": "medic",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "watcher",
+      "kind": "command",
+      "label": "routes questions",
+      "metric": {
+        "runs": {
+          "agent": "watcher",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "netops",
+      "kind": "command",
+      "label": "routes questions",
+      "metric": {
+        "runs": {
+          "agent": "netops",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "builder",
+      "kind": "command",
+      "label": "build requests",
+      "metric": {
+        "runs": {
+          "agent": "builder",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "scribe",
+      "kind": "command",
+      "label": "routes questions",
+      "metric": {
+        "runs": {
+          "agent": "scribe",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "mirror",
+      "kind": "command",
+      "label": "sync on request",
+      "metric": {
+        "runs": {
+          "agent": "mirror",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "scout",
+      "kind": "command",
+      "label": "scout on request",
+      "metric": {
+        "runs": {
+          "agent": "scout",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "writer",
+      "kind": "command",
+      "label": "draft requests",
+      "metric": {
+        "runs": {
+          "agent": "writer",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "medic",
+      "to": "boss",
+      "kind": "approval",
+      "label": "fix plan → needs ✅ · Gideon runs the fix",
+      "metric": {
+        "approvals": {
+          "agent": "medic"
+        }
+      }
+    },
+    {
+      "from": "builder",
+      "to": "boss",
+      "kind": "approval",
+      "label": "build spec → needs ✅",
+      "metric": {
+        "approvals": {
+          "agent": "builder"
+        }
+      }
+    },
+    {
+      "from": "mirror",
+      "to": "boss",
+      "kind": "approval",
+      "label": "doc diff → needs ✅ before push",
+      "metric": {
+        "approvals": {
+          "agent": "mirror"
+        }
+      }
+    },
+    {
+      "from": "netops",
+      "to": "boss",
+      "kind": "approval",
+      "label": "network change → needs ✅",
+      "metric": {
+        "approvals": {
+          "agent": "netops"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "sys:openai",
+      "kind": "data",
+      "label": "budget guard (80 % / 100 %)"
+    },
+    {
+      "from": "medic",
+      "to": "scribe",
+      "kind": "trigger",
+      "label": "after a fix: document the incident",
+      "metric": {
+        "runs": {
+          "agent": "scribe",
+          "trigger": "incident"
+        }
+      }
+    },
+    {
+      "from": "checker",
+      "to": "sys:gitlab",
+      "kind": "data",
+      "label": "reopens failed patch issues"
+    },
+    {
+      "from": "sys:gitlab",
+      "to": "medic",
+      "kind": "trigger",
+      "label": "patch-failed issues become incidents"
+    },
+    {
+      "from": "medic",
+      "to": "sys:hosts",
+      "kind": "data",
+      "label": "SSH scan every 5 min · fixes",
+      "metric": {
+        "runs": {
+          "agent": "medic"
+        }
+      }
+    },
+    {
+      "from": "medic",
+      "to": "sys:gitlab",
+      "kind": "data",
+      "label": "incident issues (open → close)"
+    },
+    {
+      "from": "medic",
+      "to": "ch:infrastructure-alerts",
+      "kind": "post",
+      "label": "diagnosis · fix report"
+    },
+    {
+      "from": "watcher",
+      "to": "sys:prom",
+      "kind": "data",
+      "label": "PromQL / LogQL every 2 min"
+    },
+    {
+      "from": "watcher",
+      "to": "sys:gitlab",
+      "kind": "data",
+      "label": "alert issues (open → close)"
+    },
+    {
+      "from": "watcher",
+      "to": "ch:infrastructure-alerts",
+      "kind": "post",
+      "label": "alerts · resolved · 08:00 digest",
+      "metric": {
+        "runs": {
+          "agent": "watcher"
+        }
+      }
+    },
+    {
+      "from": "netops",
+      "to": "sys:omada",
+      "kind": "data",
+      "label": "Omada API · ping · DNS · Traefik"
+    },
+    {
+      "from": "netops",
+      "to": "ch:infrastructure-alerts",
+      "kind": "post",
+      "label": "network alerts · 07:00 report",
+      "metric": {
+        "runs": {
+          "agent": "netops"
+        }
+      }
+    },
+    {
+      "from": "builder",
+      "to": "sys:proxmox",
+      "kind": "data",
+      "label": "Terraform (bpg) + Ansible via ansible-controller01 ? daily 07:10 audit"
+    },
+    {
+      "from": "builder",
+      "to": "ch:homelab-infrastructure",
+      "kind": "post",
+      "label": "build reports ? audit"
+    },
+    {
+      "from": "checker",
+      "to": "sys:hosts",
+      "kind": "data",
+      "label": "re-checks patched hosts ? new builds ? Corhyn's fixes"
+    },
+    {
+      "from": "checker",
+      "to": "ch:homelab-infrastructure",
+      "kind": "post",
+      "label": "05:10 verification report"
+    },
+    {
+      "from": "scribe",
+      "to": "sys:vault",
+      "kind": "data",
+      "label": "changelog · troubleshooting · service docs",
+      "metric": {
+        "runs": {
+          "agent": "scribe"
+        }
+      }
+    },
+    {
+      "from": "scribe",
+      "to": "ch:homelab-infrastructure",
+      "kind": "post",
+      "label": "documentation summary"
+    },
+    {
+      "from": "mirror",
+      "to": "sys:proxmox",
+      "kind": "data",
+      "label": "live inventory (source of truth)"
+    },
+    {
+      "from": "mirror",
+      "to": "sys:github",
+      "kind": "data",
+      "label": "push after ✅ + secret scan",
+      "metric": {
+        "runs": {
+          "agent": "mirror"
+        }
+      }
+    },
+    {
+      "from": "mirror",
+      "to": "ch:homelab-infrastructure",
+      "kind": "post",
+      "label": "diff for ? ? push report"
+    },
+    {
+      "from": "scout",
+      "to": "sys:web",
+      "kind": "data",
+      "label": "web search (weekly)",
+      "metric": {
+        "runs": {
+          "agent": "scout"
+        }
+      }
+    },
+    {
+      "from": "scout",
+      "to": "ch:homelab-scout",
+      "kind": "post",
+      "label": "Sunday report"
+    },
+    {
+      "from": "writer",
+      "to": "sys:vault",
+      "kind": "data",
+      "label": "reads changelog · saves drafts"
+    },
+    {
+      "from": "writer",
+      "to": "ch:blog-studio",
+      "kind": "post",
+      "label": "pitches · drafts",
+      "metric": {
+        "runs": {
+          "agent": "writer"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "security",
+      "kind": "command",
+      "label": "routes security questions",
+      "metric": {
+        "runs": {
+          "agent": "security",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "security",
+      "to": "ch:security-alerts",
+      "kind": "post",
+      "label": "findings · attack signals · 07:45 brief",
+      "metric": {
+        "runs": {
+          "agent": "security"
+        }
+      }
+    },
+    {
+      "from": "ch:security-alerts",
+      "to": "owner",
+      "kind": "post",
+      "label": "you are pinged on high / critical"
+    },
+    {
+      "from": "security",
+      "to": "boss",
+      "kind": "approval",
+      "label": "security fix → needs ✅",
+      "metric": {
+        "approvals": {
+          "agent": "security"
+        }
+      }
+    },
+    {
+      "from": "security",
+      "to": "sys:hosts",
+      "kind": "data",
+      "label": "SSH hardening · updates · containers"
+    },
+    {
+      "from": "security",
+      "to": "sys:proxmox",
+      "kind": "data",
+      "label": "privileged LXCs · PVE firewall"
+    },
+    {
+      "from": "security",
+      "to": "sys:omada",
+      "kind": "data",
+      "label": "port forwards · firmware · devices · TLS"
+    },
+    {
+      "from": "security",
+      "to": "sys:prom",
+      "kind": "data",
+      "label": "brute force · 401/403 bursts · backups"
+    },
+    {
+      "from": "security",
+      "to": "sys:storage",
+      "kind": "data",
+      "label": "backup freshness"
+    },
+    {
+      "from": "builder",
+      "to": "sys:storage",
+      "kind": "data",
+      "label": "datastores ? thin pools (audit + placement)"
+    },
+    {
+      "from": "security",
+      "to": "boss",
+      "kind": "report",
+      "label": "Loretta reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "security"
+        }
+      }
+    },
+    {
+      "from": "medic",
+      "to": "boss",
+      "kind": "report",
+      "label": "Corhyn reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "medic"
+        }
+      }
+    },
+    {
+      "from": "watcher",
+      "to": "boss",
+      "kind": "report",
+      "label": "Sellen reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "watcher"
+        }
+      }
+    },
+    {
+      "from": "netops",
+      "to": "boss",
+      "kind": "report",
+      "label": "Torrent reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "netops"
+        }
+      }
+    },
+    {
+      "from": "builder",
+      "to": "boss",
+      "kind": "report",
+      "label": "Hewg reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "builder"
+        }
+      }
+    },
+    {
+      "from": "writer",
+      "to": "boss",
+      "kind": "report",
+      "label": "Melina reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "writer"
+        }
+      }
+    },
+    {
+      "from": "scout",
+      "to": "boss",
+      "kind": "report",
+      "label": "Kalé reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "scout"
+        }
+      }
+    },
+    {
+      "from": "mirror",
+      "to": "boss",
+      "kind": "report",
+      "label": "Radagon reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "mirror"
+        }
+      }
+    },
+    {
+      "from": "scribe",
+      "to": "boss",
+      "kind": "report",
+      "label": "Miriel reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "scribe"
+        }
+      }
+    },
+    {
+      "from": "checker",
+      "to": "boss",
+      "kind": "report",
+      "label": "Blaidd reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "checker"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "backup",
+      "kind": "command",
+      "label": "back up X now · backup questions",
+      "metric": {
+        "runs": {
+          "agent": "backup",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "backup",
+      "to": "ch:backups",
+      "kind": "post",
+      "label": "failures · 08:00 report · Sun forecast",
+      "metric": {
+        "runs": {
+          "agent": "backup"
+        }
+      }
+    },
+    {
+      "from": "backup",
+      "to": "boss",
+      "kind": "approval",
+      "label": "retry / add to schedule · needs ✅",
+      "metric": {
+        "approvals": {
+          "agent": "backup"
+        }
+      }
+    },
+    {
+      "from": "backup",
+      "to": "sys:proxmox",
+      "kind": "data",
+      "label": "vzdump jobs · on-demand backups"
+    },
+    {
+      "from": "backup",
+      "to": "sys:storage",
+      "kind": "data",
+      "label": "PBS tasks · NAS copy · capacity"
+    },
+    {
+      "from": "backup",
+      "to": "sys:omada",
+      "kind": "data",
+      "label": "weekly config export"
+    },
+    {
+      "from": "backup",
+      "to": "boss",
+      "kind": "report",
+      "label": "Iji reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "backup"
+        }
+      }
+    },
+    {
+      "from": "owner",
+      "to": "ch:cinema-lounge",
+      "kind": "command",
+      "label": "film talk · status · grab X"
+    },
+    {
+      "from": "ch:cinema-lounge",
+      "to": "media",
+      "kind": "command",
+      "label": "polled by Gideon's loop",
+      "metric": {
+        "runs": {
+          "agent": "media",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "media",
+      "kind": "command",
+      "label": "download / movie questions",
+      "metric": {
+        "runs": {
+          "agent": "media",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "media",
+      "to": "ch:cinema-lounge",
+      "kind": "post",
+      "label": "alerts · ready to watch · 19:30 pick",
+      "metric": {
+        "runs": {
+          "agent": "media"
+        }
+      }
+    },
+    {
+      "from": "media",
+      "to": "boss",
+      "kind": "approval",
+      "label": "container restart · needs ✅",
+      "metric": {
+        "approvals": {
+          "agent": "media"
+        }
+      }
+    },
+    {
+      "from": "media",
+      "to": "sys:media",
+      "kind": "data",
+      "label": "Radarr · Sonarr · SAB · Deluge · Jellyfin · Seerr"
+    },
+    {
+      "from": "media",
+      "to": "sys:web",
+      "kind": "data",
+      "label": "new releases · film facts"
+    },
+    {
+      "from": "media",
+      "to": "boss",
+      "kind": "report",
+      "label": "Nepheli reports to Gideon",
+      "metric": {
+        "runs": {
+          "agent": "media"
+        }
+      }
+    },
+    {
+      "from": "boss",
+      "to": "checker",
+      "kind": "command",
+      "label": "verify X",
+      "metric": {
+        "runs": {
+          "agent": "checker",
+          "trigger": "chat"
+        }
+      }
+    },
+    {
+      "from": "builder",
+      "to": "medic",
+      "kind": "trigger",
+      "label": "high/critical audit findings ? Corhyn remediates"
+    },
+    {
+      "from": "builder",
+      "to": "checker",
+      "kind": "trigger",
+      "label": "verify every new guest"
+    },
+    {
+      "from": "builder",
+      "to": "scribe",
+      "kind": "trigger",
+      "label": "log builds in the changelog"
+    },
+    {
+      "from": "checker",
+      "to": "medic",
+      "kind": "trigger",
+      "label": "a fix that did not hold goes back"
+    },
+    {
+      "from": "mirror",
+      "to": "scribe",
+      "kind": "trigger",
+      "label": "log pushes in the changelog"
+    },
+    {
+      "from": "scout",
+      "to": "builder",
+      "kind": "trigger",
+      "label": "picks you like ? Hewg builds (?)"
+    }
+  ]
+}

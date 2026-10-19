@@ -1,0 +1,34 @@
+# OpenBao UI/API (openbao-lxc CT213 :8200, TLS with its own CA). Own login (token), like the Technitium route;
+# LAN and Tailscale only. The Roundtable agents talk to https://192.168.40.39:8200 directly, not through here.
+# Deployed as /opt/traefik/config/dynamic/openbao.yml on traefik-lxc; CA at /opt/traefik/certs/openbao-ca.crt.
+http:
+  routers:
+    openbao:
+      rule: Host(`bao.hrmsmrflrii.xyz`)
+      service: openbao
+      entryPoints:
+        - websecure
+      middlewares:
+        - openbao-lan
+      tls:
+        certResolver: letsencrypt
+
+  middlewares:
+    openbao-lan:
+      ipAllowList:
+        sourceRange:
+          - 192.168.0.0/16
+          - 100.64.0.0/10
+
+  services:
+    openbao:
+      loadBalancer:
+        serversTransport: openbao-tls
+        servers:
+          - url: https://192.168.40.39:8200
+
+  serversTransports:
+    openbao-tls:
+      serverName: openbao-lxc
+      rootCAs:
+        - /certs/openbao-ca.crt

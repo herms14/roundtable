@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+*.key
+*.pem
+*.sqlite
+*.db
+*.log
+node_modules/
+backups/
+wall_check.js

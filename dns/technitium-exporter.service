@@ -1,0 +1,19 @@
+[Unit]
+Description=Technitium DNS Prometheus exporter (:9274)
+After=network-online.target dns.service
+Wants=network-online.target
+
+[Service]
+User=nobody
+Group=nogroup
+EnvironmentFile=/etc/technitium-exporter.env
+ExecStart=/usr/bin/python3 /opt/technitium-exporter/technitium_exporter.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

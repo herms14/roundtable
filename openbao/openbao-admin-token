@@ -1,0 +1,6 @@
+#!/bin/bash
+# openbao-lxc: print a 1-hour admin token (child of the root token) for bao_setup.py on CT211, which reads it on stdin.
+# Root only. Use: ssh openbao-lxc 'sudo /usr/local/sbin/openbao-admin-token' | python3 ~/bao_setup.py
+set -euo pipefail
+export BAO_ADDR=https://127.0.0.1:8200 BAO_CACERT=/etc/openbao/tls/ca.crt
+BAO_TOKEN=$(cat /root/openbao-root.token) bao token create -ttl=1h -policy=root -display-name=admin-setup -field=token

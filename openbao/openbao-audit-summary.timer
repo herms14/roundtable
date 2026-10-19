@@ -1,0 +1,10 @@
+[Unit]
+Description=Summarize the OpenBao audit log for Varys (hourly)
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

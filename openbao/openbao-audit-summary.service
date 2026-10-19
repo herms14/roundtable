@@ -1,0 +1,8 @@
+[Unit]
+Description=Summarize the OpenBao audit log for Varys (no values)
+After=openbao.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /usr/local/sbin/openbao-audit-summary
+Nice=10

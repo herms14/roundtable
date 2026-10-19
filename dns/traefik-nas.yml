@@ -1,0 +1,33 @@
+# Synology DSM (NAS eth1 10GbE, 192.168.20.32:5001 — never .31, that NIC is dead). Own login (DSM), like the
+# Omada and Technitium routes; LAN and Tailscale only because the NAS holds every backup. DSM keeps its
+# self-signed certificate; Traefik presents the Let's Encrypt one. Added 2026-10-19.
+# Deployed as /opt/traefik/config/dynamic/nas.yml on traefik-lxc; DNS name `nas` in technitium_setup.py.
+http:
+  routers:
+    nas:
+      rule: Host(`nas.hrmsmrflrii.xyz`)
+      service: nas
+      entryPoints:
+        - websecure
+      middlewares:
+        - nas-lan
+      tls:
+        certResolver: letsencrypt
+
+  middlewares:
+    nas-lan:
+      ipAllowList:
+        sourceRange:
+          - 192.168.0.0/16
+          - 100.64.0.0/10
+
+  services:
+    nas:
+      loadBalancer:
+        serversTransport: nas-selfsigned
+        servers:
+          - url: https://192.168.20.32:5001
+
+  serversTransports:
+    nas-selfsigned:
+      insecureSkipVerify: true

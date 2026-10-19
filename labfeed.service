@@ -1,0 +1,16 @@
+[Unit]
+Description=Roundtable - Lab Feed (read-only lab JSON for Glance and the agents, :8790)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hermes-admin
+WorkingDirectory=/home/hermes-admin/olympus
+ExecStart=/usr/bin/python3 -u /home/hermes-admin/olympus/labfeed.py serve
+Restart=always
+RestartSec=10
+Environment=PATH=/home/hermes-admin/.local/bin:/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=multi-user.target
